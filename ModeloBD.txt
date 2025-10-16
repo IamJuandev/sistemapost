@@ -1,0 +1,195 @@
+company_info {
+    bigint id PK
+    varchar company_name
+    varchar trade_name
+    varchar nit
+    varchar dv
+    varchar address
+    varchar city
+    varchar department
+    varchar country
+    varchar postal_code
+    varchar phone
+    varchar email
+    varchar economic_activity_code
+    varchar regime_type
+    json tax_responsibilities
+    varchar software_id
+    varchar software_pin
+    varchar test_set_id
+    varchar environment       -- PRODUCCION o PRUEBAS
+    varchar logo_url
+    datetime created_at
+    datetime updated_at
+}
+
+suppliers {
+    bigint id PK
+    varchar company_name
+    varchar agent_name
+    varchar phone
+    varchar email
+    json visit_days
+    varchar nit
+    varchar dv
+    varchar address
+    varchar city
+    varchar department
+    varchar country
+    varchar postal_code
+    json tax_responsibilities
+    datetime created_at
+    datetime updated_at
+}
+
+categories {
+    bigint id PK
+    varchar name
+    text description
+    datetime created_at
+    datetime updated_at
+}
+
+products {
+    bigint id PK
+    varchar name
+    text description
+    varchar barcode UK
+    decimal cost_price
+    decimal tax_rate
+    decimal profit_margin
+    decimal selling_price
+    int stock
+    varchar image_url
+    bigint category_id FK
+    bigint supplier_id FK
+    datetime created_at
+    datetime updated_at
+}
+
+customers {
+    bigint id PK
+    varchar first_name
+    varchar last_name
+    varchar phone
+    text address
+    decimal credit_limit
+    decimal current_debt
+    datetime created_at
+    datetime updated_at
+}
+
+purchases {
+    bigint id PK
+    bigint company_id FK
+    bigint supplier_id FK
+    varchar invoice_prefix
+    varchar invoice_number
+    varchar cufe
+    varchar supplier_nit
+    varchar supplier_name
+    decimal subtotal
+    decimal tax_amount
+    decimal withholding_amount
+    decimal total_with_tax
+    varchar currency
+    varchar authorization_number
+    date authorization_expiration
+    varchar qr_url
+    varchar purchase_type
+    varchar uuid
+    datetime purchase_date
+    datetime due_date
+    varchar status
+    text notes
+    text xml_path
+    datetime created_at
+    datetime updated_at
+}
+
+purchase_items {
+    bigint id PK
+    bigint purchase_id FK
+    bigint product_id FK
+    int line_id
+    varchar description
+    varchar product_code
+    varchar unit_code
+    decimal quantity
+    decimal unit_price
+    decimal line_extension_amount
+    decimal tax_percent
+    decimal tax_amount
+    decimal total_line_amount
+    datetime created_at
+    datetime updated_at
+}
+
+sales {
+    bigint id PK
+    bigint company_id FK
+    bigint customer_id FK
+    bigint user_id FK
+    varchar invoice_prefix
+    varchar invoice_number
+    varchar cufe
+    decimal subtotal
+    decimal tax_amount
+    decimal discount_amount
+    decimal total_amount
+    varchar currency
+    varchar qr_url
+    varchar sale_type          -- CONTADO o CREDITO
+    varchar uuid
+    datetime sale_date
+    datetime due_date
+    varchar payment_method
+    varchar status
+    text notes
+    datetime created_at
+    datetime updated_at
+}
+
+sale_items {
+    bigint id PK
+    bigint sale_id FK
+    bigint product_id FK
+    int line_id
+    varchar description
+    varchar product_code
+    varchar unit_code
+    decimal quantity
+    decimal selling_price
+    decimal line_extension_amount
+    decimal tax_percent
+    decimal tax_amount
+    decimal total_line_amount
+    datetime created_at
+    datetime updated_at
+}
+
+payments {
+    bigint id PK
+    bigint sale_id FK
+    bigint customer_id FK
+    date payment_date
+    decimal amount
+    varchar payment_method
+    text notes
+    datetime created_at
+    datetime updated_at
+}
+
+products }|--|| categories : "belongs to"
+products }|--|| suppliers : "belongs to"
+suppliers ||--|{ purchases : "has many"
+purchases ||--|{ purchase_items : "has many"
+products ||--|{ purchase_items : "details"
+users ||--|{ sales : "created by"
+customers ||--|{ sales : "sold to"
+sales ||--|{ sale_items : "has many"
+products ||--|{ sale_items : "details"
+customers ||--|{ payments : "paid by"
+sales ||--o{ payments : "related to"
+company_info ||--|{ purchases : "belongs to company"
+company_info ||--|{ sales : "belongs to company"
