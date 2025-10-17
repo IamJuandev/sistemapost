@@ -12,16 +12,16 @@
                     class="h-10 inline-flex items-center justify-center px-4 text-sm font-semibold text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition dark:bg-slate-700 dark:border-slate-600 dark:text-slate-100 dark:hover:bg-slate-600">
                     Volver
                 </a>
-                @if($invoice->status === 'pending')
                 <button wire:click="markAsCancelled({{ $invoice->id }})"
                     class="h-10 w-10 inline-flex items-center justify-center text-red-600 bg-white border border-slate-300 rounded-lg hover:bg-red-50 hover:text-red-700 transition dark:bg-slate-700 dark:border-slate-600 dark:text-red-400 dark:hover:bg-red-900/50 dark:hover:text-red-300"
                     title="Cancelar Factura">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                         <path fill-rule="evenodd"
-                            d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                            d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 011.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
                             clip-rule="evenodd" />
                     </svg>
                 </button>
+                @if($invoice->status === 'pending')
                 <button wire:click="markAsPaid({{ $invoice->id }})"
                     class="h-10 inline-flex items-center justify-center gap-2 px-4 text-sm font-semibold text-white bg-green-600 rounded-lg shadow-md hover:bg-green-700 transition">
                     <span>Marcar como Pagada</span>

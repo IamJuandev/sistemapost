@@ -57,8 +57,19 @@ class InvoiceList extends Component
     {
         $invoice = Sale::find($invoiceId);
         if ($invoice) {
+            // Si la factura ya está completada, devolver los productos al inventario
+            if ($invoice->status === 'completed') {
+                foreach ($invoice->saleItems as $item) {
+                    // Actualizar el stock del producto
+                    $product = $item->product;
+                    if ($product) {
+                        $product->increment('stock', $item->quantity);
+                    }
+                }
+            }
+            
             $invoice->update(['status' => 'cancelled']);
-            session()->flash('message', 'Factura cancelada exitosamente.');
+            session()->flash('message', 'Factura cancelada exitosamente. Los productos han sido devueltos al inventario.');
         }
     }
 
