@@ -34,22 +34,11 @@
                     Información del Cliente
                 </h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <x-form.select 
-                        name="selectedCustomer" 
-                        label="Cliente" 
-                        :options="$customers->mapWithKeys(fn($customer) => [$customer->id => $customer->first_name . ' ' . $customer->last_name])->toArray()" 
-                        wire:model.live="selectedCustomer" 
-                        :placeholder="'Seleccionar Cliente'"
-                    />
-                    <x-form.input 
-                        name="discount" 
-                        label="Descuento Global (%)" 
-                        type="number" 
-                        step="0.01" 
-                        min="0" 
-                        max="100" 
-                        wire:model.live="discount" 
-                    />
+                    <x-form.select name="selectedCustomer" label="Cliente"
+                        :options="$customers->mapWithKeys(fn($customer) => [$customer->id => $customer->first_name . ' ' . $customer->last_name])->toArray()"
+                        wire:model.live="selectedCustomer" :placeholder="'Seleccionar Cliente'" />
+                    <x-form.input name="discount" label="Descuento Global (%)" type="number" step="0.01" min="0"
+                        max="100" wire:model.live="discount" />
                 </div>
             </div>
 
@@ -140,8 +129,21 @@
                 <div class="p-6 border-t border-slate-200 dark:border-slate-700 max-h-[40vh] overflow-y-auto space-y-4">
                     @foreach($cart as $productId => $item)
                     <div class="flex items-center space-x-4">
-                        <img src="{{ $item['image_url'] ?? 'https://via.placeholder.com/150?text=Sin+Imagen' }}"
-                            alt="{{ $item['name'] }}" class="w-16 h-16 rounded-lg object-cover">
+                        {{-- INICIO DE LA SECCIÓN MODIFICADA --}}
+                        <div class="flex-shrink-0">
+                            @if(!empty($item['image_url']))
+                            <img src="{{ $item['image_url'] }}" alt="{{ $item['name'] }}"
+                                class="w-16 h-16 rounded-lg object-cover">
+                            @else
+                            <div
+                                class="w-16 h-16 rounded-lg bg-slate-100 dark:bg-slate-700 flex items-center justify-center">
+                                <span class="text-xl font-bold text-slate-500 dark:text-slate-300">
+                                    {{ strtoupper(substr($item['name'], 0, 2)) }}
+                                </span>
+                            </div>
+                            @endif
+                        </div>
+                        {{-- FIN DE LA SECCIÓN MODIFICADA --}}
                         <div class="flex-grow">
                             <p class="font-semibold text-slate-800 dark:text-slate-100">{{ $item['name'] }}</p>
                             <p class="text-sm text-slate-500 dark:text-slate-400">${{
@@ -191,19 +193,27 @@
                         </div>
                     </div>
 
-                    <x-form.select 
-                        name="payment_method" 
-                        label="Forma de Pago" 
-                        :options="[
-                            'cash' => 'Efectivo',
-                            'credit_card' => 'Tarjeta de Crédito',
-                            'debit_card' => 'Tarjeta de Débito',
-                            'bank_transfer' => 'Transferencia'
-                        ]" 
-                        wire:model="payment_method"
-                        required 
-                    />
+                    <x-form.select name="payment_method" label="Forma de Pago" :options="[
+                        'cash' => 'Efectivo',
+                        'credit_card' => 'Tarjeta de Crédito',
+                        'debit_card' => 'Tarjeta de Débito',
+                        'bank_transfer' => 'Transferencia'
+                    ]" wire:model="payment_method" required />
+                    @if ($payment_method === 'cash')
+                    <div class="mt-4">
+                        <x-form.input name="cashReceived" label="Efectivo Recibido" type="number" step="any"
+                            wire:model.live="cashReceived" placeholder="0.00" />
+                    </div>
 
+                    @if(!is_null($cashReceived) && $cashReceived !== '')
+                    <div class="mt-4 p-4 bg-slate-100 dark:bg-slate-800 rounded-lg">
+                        <div class="flex justify-between text-lg font-bold">
+                            <span class="text-slate-800 dark:text-slate-100">Cambio:</span>
+                            <span class="text-green-600 dark:text-green-400">${{ number_format($change, 2) }}</span>
+                        </div>
+                    </div>
+                    @endif
+                    @endif
                     <div class="grid grid-cols-2 gap-3 pt-2">
                         <button wire:click="cancelSale"
                             class="w-full h-11 inline-flex items-center justify-center px-4 text-sm font-semibold text-slate-700 bg-slate-200 dark:bg-slate-700 dark:text-slate-100 rounded-lg hover:bg-slate-300 dark:hover:bg-slate-600 transition">

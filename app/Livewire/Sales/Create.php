@@ -21,6 +21,8 @@ class Create extends Component
     public $cart = [];
     public $payment_method = 'cash';
     public $discount = 0;
+    public $cashReceived = null;
+    public $change = 0.00;
     public $invoice_prefix = '';
     public $invoice_number = '';
     public $cufe = '';
@@ -35,7 +37,7 @@ class Create extends Component
     public $due_date;
     public $sale_date;
     public $notes = '';
-    
+
     protected $rules = [
         'selectedCustomer' => 'required|exists:customers,id',
         'selectedProduct' => 'required|exists:products,id',
@@ -52,13 +54,53 @@ class Create extends Component
         $this->currency = 'COP'; // Peso colombiano por defecto
         $this->sale_type = 'CONTADO'; // Tipo de venta por defecto
     }
-    
+    /**
+     * Se ejecuta cuando la propiedad `cashReceived` es actualizada.
+     */
+    public function updatedCashReceived($value)
+    {
+        $this->calculateChange($value);
+    }
+
+    /**
+     * Se ejecuta cuando la propiedad `payment_method` es actualizada.
+     */
+    public function updatedPaymentMethod($value)
+    {
+        if ($value !== 'cash') {
+            $this->cashReceived = null;
+            $this->change = 0.00;
+        }
+    }
+
+    /**
+     * Calcula el cambio a devolver.
+     */
+    private function calculateChange($received = null)
+    {
+        $receivedAmount = (float)($received ?? $this->cashReceived);
+
+        if ($this->payment_method !== 'cash' || is_null($receivedAmount)) {
+            $this->change = 0.00;
+            return;
+        }
+
+        $total = collect($this->cart)->sum('subtotal');
+        $totalWithDiscount = $total - ($total * ((float)$this->discount / 100));
+
+        if ($receivedAmount >= $totalWithDiscount) {
+            $this->change = $receivedAmount - $totalWithDiscount;
+        } else {
+            $this->change = 0.00;
+        }
+    }
+
     public function updatedSelectedCustomer()
     {
         // Actualizar productos disponibles cada vez que cambia el cliente
         $this->products = Product::where('stock', '>', 0)->get();
     }
-    
+
     public function updatedSearchProduct()
     {
         // Verificar si el texto ingresado es un código de barras o QR (número de cualquier longitud)
@@ -66,7 +108,7 @@ class Create extends Component
             $product = Product::where('barcode', $this->searchProduct)
                 ->where('stock', '>', 0)
                 ->first();
-                
+
             if ($product) {
                 // Producto encontrado por código de barras o QR, se agrega directamente al carrito
                 $this->selectedProduct = $product->id;
@@ -89,14 +131,14 @@ class Create extends Component
             }
         }
     }
-    
+
     public function selectProduct($productId)
     {
         $this->selectedProduct = $productId;
         $this->searchProduct = '';
         $this->searchResults = collect();
         $this->addToCart();
-        
+
         // Foco de nuevo en el campo de búsqueda después de agregar el producto
         $this->dispatch('focus-search-field');
     }
@@ -106,14 +148,14 @@ class Create extends Component
         $total = collect($this->cart)->sum('subtotal');
         $totalWithDiscount = $total - ($total * ($this->discount / 100));
         $discount_amount = $total * ($this->discount / 100);
-        
+
         // Calcular subtotal e impuestos
         $subtotal = $totalWithDiscount; // Puede ajustarse según lógica de negocio
-        $tax_amount = collect($this->cart)->sum(function($item) {
+        $tax_amount = collect($this->cart)->sum(function ($item) {
             return $item['subtotal'] * 0.19; // Suponiendo 19% de IVA
         });
         $total_amount = $subtotal + $tax_amount;
-        
+
         return view('livewire.sales.create', [
             'total' => $total,
             'totalWithDiscount' => $totalWithDiscount,
@@ -127,39 +169,39 @@ class Create extends Component
     public function addToCart()
     {
         $this->validate();
-        
+
         $product = Product::find($this->selectedProduct);
-        
+
         if (!$product) {
             $this->addError('selectedProduct', 'Producto no encontrado');
             return;
         }
-        
+
         if ($product->stock < $this->quantity) {
             $this->addError('quantity', 'Stock insuficiente. Solo hay ' . $product->stock . ' disponibles.');
             return;
         }
-        
+
         $productId = $product->id;
-        
+
         // Calcular montos de línea
         $line_extension_amount = $product->selling_price * $this->quantity;
         $tax_percent = 19.00; // Suponiendo 19% de IVA
         $tax_amount = $line_extension_amount * ($tax_percent / 100);
         $total_line_amount = $line_extension_amount + $tax_amount;
-        
+
         if (isset($this->cart[$productId])) {
             // If product already in cart, update quantity
             $newQuantity = $this->cart[$productId]['quantity'] + $this->quantity;
-            
+
             if ($product->stock < $newQuantity) {
                 $this->addError('quantity', 'Stock insuficiente. Solo hay ' . $product->stock . ' disponibles. Ya tienes ' . $this->cart[$productId]['quantity'] . ' en el carrito.');
                 return;
             }
-            
+
             $this->cart[$productId]['quantity'] = $newQuantity;
             $this->cart[$productId]['subtotal'] = $this->cart[$productId]['selling_price'] * $newQuantity;
-            
+
             // Recalcular montos de línea
             $line_extension_amount = $this->cart[$productId]['selling_price'] * $newQuantity;
             $tax_amount = $line_extension_amount * ($tax_percent / 100);
@@ -181,11 +223,11 @@ class Create extends Component
                 'total_line_amount' => $total_line_amount,
             ];
         }
-        
+
         // Reset form fields
         $this->selectedProduct = '';
         $this->quantity = 1;
-        
+
         // Refresh product list (to reflect updated stock)
         $this->products = Product::where('stock', '>', 0)->get();
     }
@@ -193,7 +235,7 @@ class Create extends Component
     public function removeFromCart($productId)
     {
         unset($this->cart[$productId]);
-        
+
         // Refresh product list (to reflect updated stock)
         $this->products = Product::where('stock', '>', 0)->get();
     }
@@ -204,13 +246,13 @@ class Create extends Component
             $this->removeFromCart($productId);
             return;
         }
-        
+
         $product = Product::find($productId);
-        
+
         if ($product && $product->stock >= $newQuantity) {
             $this->cart[$productId]['quantity'] = $newQuantity;
             $this->cart[$productId]['subtotal'] = $this->cart[$productId]['selling_price'] * $newQuantity;
-            
+
             // Recalcular montos de línea
             $line_extension_amount = $this->cart[$productId]['selling_price'] * $newQuantity;
             $tax_amount = $line_extension_amount * ($this->cart[$productId]['tax_percent'] / 100);
@@ -238,7 +280,7 @@ class Create extends Component
 
         // Calcular subtotal e impuestos
         $subtotal = $totalWithDiscount;
-        $tax_amount = collect($this->cart)->sum(function($item) {
+        $tax_amount = collect($this->cart)->sum(function ($item) {
             $line_extension_amount = $item['selling_price'] * $item['quantity'];
             return $line_extension_amount * 0.19; // Suponiendo 19% de IVA
         });
@@ -283,7 +325,7 @@ class Create extends Component
                 'total_line_amount' => $item['total_line_amount'],
                 'subtotal' => $item['line_extension_amount'], // Agregar el campo subtotal
             ]);
-            
+
             // Actualizar el stock del producto
             $product = Product::find($item['id']);
             if ($product) {
@@ -293,8 +335,8 @@ class Create extends Component
 
         // Resetear el formulario
         $this->reset([
-            'cart', 
-            'selectedCustomer', 
+            'cart',
+            'selectedCustomer',
             'discount',
             'invoice_prefix',
             'invoice_number',
@@ -308,21 +350,23 @@ class Create extends Component
             'sale_type',
             'uuid',
             'due_date',
-            'sale_date'
+            'sale_date',
+            'cashReceived',
+            'change',
         ]);
         $this->customers = Customer::all();
         $this->products = Product::where('stock', '>', 0)->get();
         $this->sale_date = now()->format('Y-m-d');
         $this->due_date = now()->addDays(30)->format('Y-m-d');
-        
+
         session()->flash('message', 'Venta completada exitosamente.');
     }
 
     public function cancelSale()
     {
         $this->reset([
-            'cart', 
-            'selectedCustomer', 
+            'cart',
+            'selectedCustomer',
             'discount',
             'invoice_prefix',
             'invoice_number',
@@ -336,13 +380,15 @@ class Create extends Component
             'sale_type',
             'uuid',
             'due_date',
-            'sale_date'
+            'sale_date',
+            'cashReceived',
+            'change',
         ]);
         $this->customers = Customer::all();
         $this->products = Product::where('stock', '>', 0)->get();
         $this->sale_date = now()->format('Y-m-d');
         $this->due_date = now()->addDays(30)->format('Y-m-d');
-        
+
         session()->flash('message', 'Venta cancelada.');
     }
 }

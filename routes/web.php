@@ -24,6 +24,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/products', \App\Livewire\Products\Index::class)->name('products.index');
     Route::get('/customers', \App\Livewire\Customers\Index::class)->name('customers.index');
     Route::get('/sales/create', \App\Livewire\Sales\Create::class)->name('sales.create');
+    Route::get('/sales/invoices', \App\Livewire\Sales\InvoiceList::class)->name('sales.invoices');
+    Route::get('/sales/{sale}', \App\Livewire\Sales\InvoiceView::class)->name('sales.show');
     Route::get('/purchases/create', \App\Livewire\Purchases\Create::class)->name('purchases.create');
     Route::get('/purchases/invoices', \App\Livewire\Purchases\InvoiceList::class)->name('purchases.invoices');
     Route::get('/purchases/{purchase}', \App\Livewire\Purchases\InvoiceView::class)->name('purchases.show');
