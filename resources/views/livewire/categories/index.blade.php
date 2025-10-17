@@ -53,32 +53,35 @@ Asegúrate de tener Alpine.js disponible en tu proyecto para las transiciones.
                 </h2>
 
                 <div class="space-y-6">
-                    <div>
-                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">Nombre</label>
-                        <input type="text" wire:model="name"
-                            class="block w-full rounded-lg border-slate-300 py-2.5 px-4 text-base text-slate-900 shadow-sm transition placeholder:text-slate-400 focus:border-indigo-500 focus:ring-indigo-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-400 dark:focus:border-indigo-500 dark:focus:ring-indigo-500 @error('name') border-red-500 @enderror">
-                        @error('name') <span class="text-red-500 dark:text-red-400 text-sm mt-1">{{ $message }}</span>
-                        @enderror
-                    </div>
-                    <div>
-                        <label
-                            class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">Descripción</label>
-                        <textarea wire:model="description" rows="3"
-                            class="block w-full rounded-lg border-slate-300 py-2.5 px-4 text-base text-slate-900 shadow-sm transition placeholder:text-slate-400 focus:border-indigo-500 focus:ring-indigo-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-400 dark:focus:border-indigo-500 dark:focus:ring-indigo-500 @error('description') border-red-500 @enderror"></textarea>
-                        @error('description') <span class="text-red-500 dark:text-red-400 text-sm mt-1">{{ $message
-                            }}</span> @enderror
-                    </div>
+                    <x-form.input 
+                        name="name" 
+                        label="Nombre" 
+                        wire:model="name" 
+                        required 
+                    />
+                    <x-form.textarea 
+                        name="description" 
+                        label="Descripción" 
+                        wire:model="description" 
+                        rows="3"
+                    />
                 </div>
 
                 <div class="mt-6 flex items-center space-x-3">
-                    <button wire:click="{{ $showEditForm ? 'update' : 'store' }}"
-                        class="px-4 py-2.5 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-colors">
+                    <x-form.button 
+                        type="button"
+                        wire:click="{{ $showEditForm ? 'update' : 'store' }}"
+                        variant="primary"
+                    >
                         {{ $showEditForm ? 'Actualizar Categoría' : 'Guardar Categoría' }}
-                    </button>
-                    <button wire:click="cancel"
-                        class="px-4 py-2.5 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-100 font-semibold rounded-lg hover:bg-slate-100 dark:hover:bg-slate-600 transition-colors">
+                    </x-form.button>
+                    <x-form.button 
+                        type="button"
+                        wire:click="cancel"
+                        variant="secondary"
+                    >
                         Cancelar
-                    </button>
+                    </x-form.button>
                 </div>
             </div>
         </div>

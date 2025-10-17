@@ -56,102 +56,94 @@ Si usas un starter kit de Laravel, ya debería estar incluido.
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div class="space-y-6">
-                        <div>
-                            <label
-                                class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">Nombre</label>
-                            <input type="text" wire:model="name"
-                                class="block w-full rounded-lg border-slate-300 py-2.5 px-4 text-base text-slate-900 shadow-sm transition placeholder:text-slate-400 focus:border-indigo-500 focus:ring-indigo-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-400 dark:focus:border-indigo-500 dark:focus:ring-indigo-500 @error('name') border-red-500 @enderror">
-                            @error('name') <span class="text-red-500 dark:text-red-400 text-sm mt-1">{{ $message
-                                }}</span> @enderror
-                        </div>
-                        <div>
-                            <label
-                                class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">Categoría</label>
-                            <select wire:model="category_id"
-                                class="block w-full rounded-lg border-slate-300 py-2.5 px-4 text-base text-slate-900 shadow-sm transition placeholder:text-slate-400 focus:border-indigo-500 focus:ring-indigo-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-400 dark:focus:border-indigo-500 dark:focus:ring-indigo-500 @error('category_id') border-red-500 @enderror">
-                                <option value="">Seleccionar...</option>
-                                @foreach($categories as $category)
-                                <option value="{{ $category->id }}">{{ $category->name }}</option>
-                                @endforeach
-                            </select>
-                            @error('category_id') <span class="text-red-500 dark:text-red-400 text-sm mt-1">{{ $message
-                                }}</span> @enderror
-                        </div>
-                        <div>
-                            <label
-                                class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">Proveedor</label>
-                            <select wire:model="supplier_id"
-                                class="block w-full rounded-lg border-slate-300 py-2.5 px-4 text-base text-slate-900 shadow-sm transition placeholder:text-slate-400 focus:border-indigo-500 focus:ring-indigo-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-400 dark:focus:border-indigo-500 dark:focus:ring-indigo-500 @error('supplier_id') border-red-500 @enderror">
-                                <option value="">Seleccionar...</option>
-                                @foreach($suppliers as $supplier)
-                                <option value="{{ $supplier->id }}">{{ $supplier->company_name }}</option>
-                                @endforeach
-                            </select>
-                            @error('supplier_id') <span class="text-red-500 dark:text-red-400 text-sm mt-1">{{ $message
-                                }}</span> @enderror
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">Código de
-                                Barras</label>
-                            <input type="text" wire:model="barcode"
-                                class="block w-full rounded-lg border-slate-300 py-2.5 px-4 text-base text-slate-900 shadow-sm transition placeholder:text-slate-400 focus:border-indigo-500 focus:ring-indigo-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-400 dark:focus:border-indigo-500 dark:focus:ring-indigo-500 @error('barcode') border-red-500 @enderror">
-                            @error('barcode') <span class="text-red-500 dark:text-red-400 text-sm mt-1">{{ $message
-                                }}</span> @enderror
-                        </div>
+                        <x-form.input 
+                            name="name" 
+                            label="Nombre" 
+                            wire:model="name" 
+                            required 
+                        />
+                        <x-form.select 
+                            name="category_id" 
+                            label="Categoría" 
+                            :options="$categories->pluck('name', 'id')->toArray()" 
+                            wire:model="category_id" 
+                            required 
+                            :placeholder="'Seleccionar...'"
+                        />
+                        <x-form.select 
+                            name="supplier_id" 
+                            label="Proveedor" 
+                            :options="$suppliers->pluck('company_name', 'id')->toArray()" 
+                            wire:model="supplier_id" 
+                            required 
+                            :placeholder="'Seleccionar...'"
+                        />
+                        <x-form.input 
+                            name="barcode" 
+                            label="Código de Barras" 
+                            wire:model="barcode" 
+                            required 
+                        />
                     </div>
                     <div class="space-y-6">
                         <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">Precio
-                                    de Costo</label>
-                                <input type="number" step="0.01" wire:model.live="cost_price"
-                                    class="block w-full rounded-lg border-slate-300 py-2.5 px-4 text-base text-slate-900 shadow-sm transition placeholder:text-slate-400 focus:border-indigo-500 focus:ring-indigo-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-400 dark:focus:border-indigo-500 dark:focus:ring-indigo-500 @error('cost_price') border-red-500 @enderror">
-                                @error('cost_price') <span class="text-red-500 dark:text-red-400 text-sm mt-1">{{
-                                    $message }}</span> @enderror
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">Margen
-                                    (%)</label>
-                                <input type="number" step="0.01" wire:model.live="profit_margin"
-                                    class="block w-full rounded-lg border-slate-300 py-2.5 px-4 text-base text-slate-900 shadow-sm transition placeholder:text-slate-400 focus:border-indigo-500 focus:ring-indigo-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-400 dark:focus:border-indigo-500 dark:focus:ring-indigo-500 @error('profit_margin') border-red-500 @enderror">
-                                @error('profit_margin') <span class="text-red-500 dark:text-red-400 text-sm mt-1">{{
-                                    $message }}</span> @enderror
-                            </div>
+                            <x-form.input 
+                                name="cost_price" 
+                                label="Precio de Costo" 
+                                type="number" 
+                                step="0.01" 
+                                wire:model.live="cost_price" 
+                                required 
+                            />
+                            <x-form.input 
+                                name="profit_margin" 
+                                label="Margen (%)" 
+                                type="number" 
+                                step="0.01" 
+                                wire:model.live="profit_margin" 
+                                required 
+                            />
                         </div>
-                        <div>
-                            <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">Impuesto
-                                (%)</label>
-                            <input type="number" step="0.01" wire:model.live="tax_rate"
-                                class="block w-full rounded-lg border-slate-300 py-2.5 px-4 text-base text-slate-900 shadow-sm transition placeholder:text-slate-400 focus:border-indigo-500 focus:ring-indigo-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-400 dark:focus:border-indigo-500 dark:focus:ring-indigo-500 @error('tax_rate') border-red-500 @enderror">
-                            @error('tax_rate') <span class="text-red-500 dark:text-red-400 text-sm mt-1">{{ $message
-                                }}</span> @enderror
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">Precio
-                                Venta (Calculado)</label>
-                            <input type="text" wire:model="selling_price" readonly
-                                class="block w-full rounded-lg border-slate-300 py-2.5 px-4 text-base shadow-sm cursor-not-allowed bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 dark:border-slate-700">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">Stock
-                                Inicial</label>
-                            <input type="number" wire:model="stock"
-                                class="block w-full rounded-lg border-slate-300 py-2.5 px-4 text-base text-slate-900 shadow-sm transition placeholder:text-slate-400 focus:border-indigo-500 focus:ring-indigo-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-400 dark:focus:border-indigo-500 dark:focus:ring-indigo-500 @error('stock') border-red-500 @enderror">
-                            @error('stock') <span class="text-red-500 dark:text-red-400 text-sm mt-1">{{ $message
-                                }}</span> @enderror
-                        </div>
+                        <x-form.input 
+                            name="tax_rate" 
+                            label="Impuesto (%)" 
+                            type="number" 
+                            step="0.01" 
+                            wire:model.live="tax_rate" 
+                            required 
+                        />
+                        <x-form.input 
+                            name="selling_price" 
+                            label="Precio Venta (Calculado)" 
+                            wire:model="selling_price" 
+                            readonly 
+                            disabled 
+                        />
+                        <x-form.input 
+                            name="stock" 
+                            label="Stock Inicial" 
+                            type="number" 
+                            wire:model="stock" 
+                            required 
+                        />
                     </div>
                 </div>
 
                 <div class="mt-6 flex items-center space-x-3">
-                    <button wire:click="{{ $showEditForm ? 'update' : 'store' }}"
-                        class="px-4 py-2.5 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-colors">
+                    <x-form.button 
+                        type="button"
+                        wire:click="{{ $showEditForm ? 'update' : 'store' }}"
+                        variant="primary"
+                    >
                         {{ $showEditForm ? 'Actualizar Producto' : 'Guardar Producto' }}
-                    </button>
-                    <button wire:click="cancel"
-                        class="px-4 py-2.5 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-100 font-semibold rounded-lg hover:bg-slate-100 dark:hover:bg-slate-600 transition-colors">
+                    </x-form.button>
+                    <x-form.button 
+                        type="button"
+                        wire:click="cancel"
+                        variant="secondary"
+                    >
                         Cancelar
-                    </button>
+                    </x-form.button>
                 </div>
             </div>
         </div>

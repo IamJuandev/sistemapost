@@ -12,6 +12,11 @@ Route::get('dashboard', \App\Livewire\Reports\Dashboard::class)
     ->middleware(['auth', 'verified'])
     ->name('dashboard');
 
+// Route for testing form components
+Route::get('/test-form-components', function () {
+    return view('test-form-components');
+})->middleware(['auth', 'verified'])->name('test.form.components');
+
 // Rutas para la gestión de inventario
 Route::middleware(['auth'])->group(function () {
     Route::get('/categories', \App\Livewire\Categories\Index::class)->name('categories.index');

@@ -35,52 +35,45 @@
                 </h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     <div class="lg:col-span-3">
-                        <label
-                            class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">Proveedor</label>
-                        <select wire:model.live="selectedSupplier"
-                            class="block w-full rounded-lg border-slate-300 py-2.5 px-4 text-base text-slate-900 shadow-sm transition placeholder:text-slate-400 focus:border-indigo-500 focus:ring-indigo-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-400 dark:focus:border-indigo-500 dark:focus:ring-indigo-500 @error('selectedSupplier') border-red-500 @enderror">
-                            <option value="">Seleccionar Proveedor</option>
-                            @foreach($suppliers as $supplier)
-                            <option value="{{ $supplier->id }}">{{ $supplier->company_name }}</option>
-                            @endforeach
-                        </select>
-                        @error('selectedSupplier') <span class="text-red-500 dark:text-red-400 text-sm mt-1">{{ $message
-                            }}</span>
-                        @enderror
+                        <x-form.select 
+                            name="selectedSupplier" 
+                            label="Proveedor" 
+                            :options="$suppliers->pluck('company_name', 'id')->toArray()" 
+                            wire:model.live="selectedSupplier" 
+                            required 
+                            :placeholder="'Seleccionar Proveedor'"
+                        />
                     </div>
-                    <div>
-                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">Prefijo
-                            Factura</label>
-                        <input type="text" wire:model="invoice_prefix" placeholder="Ej: FV-"
-                            class="block w-full rounded-lg border-slate-300 py-2.5 px-4 text-base text-slate-900 shadow-sm transition placeholder:text-slate-400 focus:border-indigo-500 focus:ring-indigo-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-400 dark:focus:border-indigo-500 dark:focus:ring-indigo-500" />
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">Número
-                            Factura</label>
-                        <input type="text" wire:model="invoice_number"
-                            class="block w-full rounded-lg border-slate-300 py-2.5 px-4 text-base text-slate-900 shadow-sm transition placeholder:text-slate-400 focus:border-indigo-500 focus:ring-indigo-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-400 dark:focus:border-indigo-500 dark:focus:ring-indigo-500 @error('invoice_number') border-red-500 @enderror" />
-                        @error('invoice_number') <span class="text-red-500 dark:text-red-400 text-sm mt-1">{{ $message
-                            }}</span> @enderror
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">Fecha de
-                            Compra</label>
-                        <input type="date" wire:model="purchase_date"
-                            class="block w-full rounded-lg border-slate-300 py-2.5 px-4 text-base text-slate-900 shadow-sm transition placeholder:text-slate-400 focus:border-indigo-500 focus:ring-indigo-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-400 dark:focus:border-indigo-500 dark:focus:ring-indigo-500" />
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">Moneda</label>
-                        <select wire:model="currency"
-                            class="block w-full rounded-lg border-slate-300 py-2.5 px-4 text-base text-slate-900 shadow-sm transition placeholder:text-slate-400 focus:border-indigo-500 focus:ring-indigo-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-400 dark:focus:border-indigo-500 dark:focus:ring-indigo-500">
-                            <option value="COP">COP</option>
-                            <option value="USD">USD</option>
-                            <option value="EUR">EUR</option>
-                        </select>
-                    </div>
+                    <x-form.input 
+                        name="invoice_prefix" 
+                        label="Prefijo Factura" 
+                        wire:model="invoice_prefix" 
+                        placeholder="Ej: FV-"
+                    />
+                    <x-form.input 
+                        name="invoice_number" 
+                        label="Número Factura" 
+                        wire:model="invoice_number" 
+                    />
+                    <x-form.input 
+                        name="purchase_date" 
+                        label="Fecha de Compra" 
+                        type="date" 
+                        wire:model="purchase_date" 
+                    />
+                    <x-form.select 
+                        name="currency" 
+                        label="Moneda" 
+                        :options="['COP' => 'COP', 'USD' => 'USD', 'EUR' => 'EUR']" 
+                        wire:model="currency" 
+                    />
                     <div class="lg:col-span-2">
-                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">Notas</label>
-                        <input type="text" wire:model="notes" placeholder="Notas adicionales"
-                            class="block w-full rounded-lg border-slate-300 py-2.5 px-4 text-base text-slate-900 shadow-sm transition placeholder:text-slate-400 focus:border-indigo-500 focus:ring-indigo-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-400 dark:focus:border-indigo-500 dark:focus:ring-indigo-500" />
+                        <x-form.input 
+                            name="notes" 
+                            label="Notas" 
+                            wire:model="notes" 
+                            placeholder="Notas adicionales"
+                        />
                     </div>
                 </div>
             </div>

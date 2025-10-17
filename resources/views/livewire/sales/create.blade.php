@@ -34,26 +34,22 @@
                     Información del Cliente
                 </h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">Cliente</label>
-                        <select wire:model.live="selectedCustomer"
-                            class="block w-full rounded-lg border-slate-300 py-2.5 px-4 text-base text-slate-900 shadow-sm transition placeholder:text-slate-400 focus:border-indigo-500 focus:ring-indigo-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-400 dark:focus:border-indigo-500 dark:focus:ring-indigo-500 @error('selectedCustomer') border-red-500 @enderror">
-                            <option value="">Seleccionar Cliente</option>
-                            @foreach($customers as $customer)
-                            <option value="{{ $customer->id }}">{{ $customer->first_name }} {{ $customer->last_name }}
-                            </option>
-                            @endforeach
-                        </select>
-                        @error('selectedCustomer') <span class="text-red-500 dark:text-red-400 text-sm mt-1">{{ $message
-                            }}</span>
-                        @enderror
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">Descuento
-                            Global (%)</label>
-                        <input type="number" step="0.01" min="0" max="100" wire:model.live="discount"
-                            class="block w-full rounded-lg border-slate-300 py-2.5 px-4 text-base text-slate-900 shadow-sm transition placeholder:text-slate-400 focus:border-indigo-500 focus:ring-indigo-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-400 dark:focus:border-indigo-500 dark:focus:ring-indigo-500" />
-                    </div>
+                    <x-form.select 
+                        name="selectedCustomer" 
+                        label="Cliente" 
+                        :options="$customers->mapWithKeys(fn($customer) => [$customer->id => $customer->first_name . ' ' . $customer->last_name])->toArray()" 
+                        wire:model.live="selectedCustomer" 
+                        :placeholder="'Seleccionar Cliente'"
+                    />
+                    <x-form.input 
+                        name="discount" 
+                        label="Descuento Global (%)" 
+                        type="number" 
+                        step="0.01" 
+                        min="0" 
+                        max="100" 
+                        wire:model.live="discount" 
+                    />
                 </div>
             </div>
 
@@ -195,17 +191,18 @@
                         </div>
                     </div>
 
-                    <div>
-                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">Forma de
-                            Pago</label>
-                        <select wire:model="payment_method"
-                            class="block w-full rounded-lg border-slate-300 py-2.5 px-4 text-base text-slate-900 shadow-sm transition placeholder:text-slate-400 focus:border-indigo-500 focus:ring-indigo-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-400 dark:focus:border-indigo-500 dark:focus:ring-indigo-500">
-                            <option value="cash">Efectivo</option>
-                            <option value="credit_card">Tarjeta de Crédito</option>
-                            <option value="debit_card">Tarjeta de Débito</option>
-                            <option value="bank_transfer">Transferencia</option>
-                        </select>
-                    </div>
+                    <x-form.select 
+                        name="payment_method" 
+                        label="Forma de Pago" 
+                        :options="[
+                            'cash' => 'Efectivo',
+                            'credit_card' => 'Tarjeta de Crédito',
+                            'debit_card' => 'Tarjeta de Débito',
+                            'bank_transfer' => 'Transferencia'
+                        ]" 
+                        wire:model="payment_method"
+                        required 
+                    />
 
                     <div class="grid grid-cols-2 gap-3 pt-2">
                         <button wire:click="cancelSale"

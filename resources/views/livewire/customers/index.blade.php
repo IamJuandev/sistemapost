@@ -54,56 +54,56 @@ Asegúrate de tener Alpine.js disponible en tu proyecto para las transiciones.
                 </h2>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">Nombre</label>
-                        <input type="text" wire:model="first_name"
-                            class="block w-full rounded-lg border-slate-300 py-2.5 px-4 text-base text-slate-900 shadow-sm transition placeholder:text-slate-400 focus:border-indigo-500 focus:ring-indigo-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-400 dark:focus:border-indigo-500 dark:focus:ring-indigo-500 @error('first_name') border-red-500 @enderror">
-                        @error('first_name') <span class="text-red-500 dark:text-red-400 text-sm mt-1">{{ $message
-                            }}</span> @enderror
-                    </div>
-                    <div>
-                        <label
-                            class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">Apellido</label>
-                        <input type="text" wire:model="last_name"
-                            class="block w-full rounded-lg border-slate-300 py-2.5 px-4 text-base text-slate-900 shadow-sm transition placeholder:text-slate-400 focus:border-indigo-500 focus:ring-indigo-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-400 dark:focus:border-indigo-500 dark:focus:ring-indigo-500 @error('last_name') border-red-500 @enderror">
-                        @error('last_name') <span class="text-red-500 dark:text-red-400 text-sm mt-1">{{ $message
-                            }}</span> @enderror
-                    </div>
-                    <div>
-                        <label
-                            class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">Teléfono</label>
-                        <input type="text" wire:model="phone"
-                            class="block w-full rounded-lg border-slate-300 py-2.5 px-4 text-base text-slate-900 shadow-sm transition placeholder:text-slate-400 focus:border-indigo-500 focus:ring-indigo-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-400 dark:focus:border-indigo-500 dark:focus:ring-indigo-500 @error('phone') border-red-500 @enderror">
-                        @error('phone') <span class="text-red-500 dark:text-red-400 text-sm mt-1">{{ $message }}</span>
-                        @enderror
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">Límite de
-                            Crédito</label>
-                        <input type="number" step="0.01" wire:model="credit_limit"
-                            class="block w-full rounded-lg border-slate-300 py-2.5 px-4 text-base text-slate-900 shadow-sm transition placeholder:text-slate-400 focus:border-indigo-500 focus:ring-indigo-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-400 dark:focus:border-indigo-500 dark:focus:ring-indigo-500 @error('credit_limit') border-red-500 @enderror">
-                        @error('credit_limit') <span class="text-red-500 dark:text-red-400 text-sm mt-1">{{ $message
-                            }}</span> @enderror
-                    </div>
+                    <x-form.input 
+                        name="first_name" 
+                        label="Nombre" 
+                        wire:model="first_name" 
+                        required 
+                    />
+                    <x-form.input 
+                        name="last_name" 
+                        label="Apellido" 
+                        wire:model="last_name" 
+                        required 
+                    />
+                    <x-form.input 
+                        name="phone" 
+                        label="Teléfono" 
+                        wire:model="phone" 
+                        required 
+                    />
+                    <x-form.input 
+                        name="credit_limit" 
+                        label="Límite de Crédito" 
+                        type="number" 
+                        step="0.01" 
+                        wire:model="credit_limit" 
+                    />
                     <div class="md:col-span-2">
-                        <label
-                            class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">Dirección</label>
-                        <textarea wire:model="address" rows="3"
-                            class="block w-full rounded-lg border-slate-300 py-2.5 px-4 text-base text-slate-900 shadow-sm transition placeholder:text-slate-400 focus:border-indigo-500 focus:ring-indigo-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-400 dark:focus:border-indigo-500 dark:focus:ring-indigo-500 @error('address') border-red-500 @enderror"></textarea>
-                        @error('address') <span class="text-red-500 dark:text-red-400 text-sm mt-1">{{ $message
-                            }}</span> @enderror
+                        <x-form.textarea 
+                            name="address" 
+                            label="Dirección" 
+                            wire:model="address" 
+                            rows="3"
+                        />
                     </div>
                 </div>
 
                 <div class="mt-6 flex items-center space-x-3">
-                    <button wire:click="{{ $showEditForm ? 'update' : 'store' }}"
-                        class="px-4 py-2.5 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-colors">
+                    <x-form.button 
+                        type="button"
+                        wire:click="{{ $showEditForm ? 'update' : 'store' }}"
+                        variant="primary"
+                    >
                         {{ $showEditForm ? 'Actualizar Cliente' : 'Guardar Cliente' }}
-                    </button>
-                    <button wire:click="cancel"
-                        class="px-4 py-2.5 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-100 font-semibold rounded-lg hover:bg-slate-100 dark:hover:bg-slate-600 transition-colors">
+                    </x-form.button>
+                    <x-form.button 
+                        type="button"
+                        wire:click="cancel"
+                        variant="secondary"
+                    >
                         Cancelar
-                    </button>
+                    </x-form.button>
                 </div>
             </div>
         </div>
