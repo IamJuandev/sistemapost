@@ -126,6 +126,11 @@ Asegúrate de tener Alpine.js disponible en tu proyecto para el menú de accione
                                                 role="menuitem">
                                                 Marcar como Pagada
                                             </button>
+                                            <button wire:click="markAsCancelled({{ $invoice->id }})"
+                                                class="flex items-center w-full text-left px-4 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700"
+                                                role="menuitem">
+                                                Cancelar Factura
+                                            </button>
                                         </div>
                                     </div>
                                 </div>

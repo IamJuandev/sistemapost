@@ -53,6 +53,15 @@ class InvoiceList extends Component
         }
     }
 
+    public function markAsCancelled($invoiceId)
+    {
+        $invoice = Sale::find($invoiceId);
+        if ($invoice) {
+            $invoice->update(['status' => 'cancelled']);
+            session()->flash('message', 'Factura cancelada exitosamente.');
+        }
+    }
+
     public function viewInvoice($invoiceId)
     {
         return redirect()->route('sales.show', ['sale' => $invoiceId]);
