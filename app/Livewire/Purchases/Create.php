@@ -134,17 +134,21 @@ class Create extends Component
         
         $productId = $product->id;
         
-        // Calculate line amounts
+        // Calculate line amounts with discount consideration
         $line_extension_amount = $this->unit_price * $this->quantity;
-        $tax_amount = $line_extension_amount * ($this->tax_percent / 100);
-        $total_line_amount = $line_extension_amount + $tax_amount;
+        $discount = 0; // Temporalmente sin descuento, se puede implementar una funcionalidad para agregar descuentos
+        $subtotal_after_discount = $line_extension_amount - $discount;
+        $tax_amount = $subtotal_after_discount * ($this->tax_percent / 100);
+        $total_line_amount = $subtotal_after_discount + $tax_amount;
         
         if (isset($this->cart[$productId])) {
             // If product already in cart, update quantity
             $this->cart[$productId]['quantity'] += $this->quantity;
             $this->cart[$productId]['line_extension_amount'] = $this->cart[$productId]['unit_price'] * $this->cart[$productId]['quantity'];
-            $this->cart[$productId]['tax_amount'] = $this->cart[$productId]['line_extension_amount'] * ($this->cart[$productId]['tax_percent'] / 100);
-            $this->cart[$productId]['total_line_amount'] = $this->cart[$productId]['line_extension_amount'] + $this->cart[$productId]['tax_amount'];
+            $this->cart[$productId]['discount'] = 0; // Actualizar si se implementa descuento
+            $this->cart[$productId]['subtotal_after_discount'] = $this->cart[$productId]['line_extension_amount'] - $this->cart[$productId]['discount'];
+            $this->cart[$productId]['tax_amount'] = $this->cart[$productId]['subtotal_after_discount'] * ($this->cart[$productId]['tax_percent'] / 100);
+            $this->cart[$productId]['total_line_amount'] = $this->cart[$productId]['subtotal_after_discount'] + $this->cart[$productId]['tax_amount'];
         } else {
             // Add new product to cart
             $this->cart[$productId] = [
@@ -156,9 +160,13 @@ class Create extends Component
                 'unit_price' => $this->unit_price,
                 'tax_percent' => $this->tax_percent,
                 'quantity' => $this->quantity,
+                'quantity_for_unit' => $product->quantity_for_unit, // Añadir quantity_for_unit si existe
                 'line_extension_amount' => $line_extension_amount,
+                'discount' => $discount,
+                'subtotal_after_discount' => $subtotal_after_discount,
                 'tax_amount' => $tax_amount,
                 'total_line_amount' => $total_line_amount,
+                'total_value' => $total_line_amount, // Total final después de aplicar descuentos e impuestos
                 'line_id' => count($this->cart) + 1, // Agregar line_id secuencial
             ];
         }
@@ -184,8 +192,14 @@ class Create extends Component
         
         $this->cart[$productId]['quantity'] = $newQuantity;
         $line_extension_amount = $this->cart[$productId]['unit_price'] * $newQuantity;
-        $tax_amount = $line_extension_amount * ($this->cart[$productId]['tax_percent'] / 100);
-        $this->cart[$productId]['total_line_amount'] = $line_extension_amount + $tax_amount;
+        $subtotal_after_discount = $line_extension_amount - ($this->cart[$productId]['discount'] ?? 0);
+        $tax_amount = $subtotal_after_discount * ($this->cart[$productId]['tax_percent'] / 100);
+        $total_line_amount = $subtotal_after_discount + $tax_amount;
+        $this->cart[$productId]['line_extension_amount'] = $line_extension_amount;
+        $this->cart[$productId]['subtotal_after_discount'] = $subtotal_after_discount;
+        $this->cart[$productId]['tax_amount'] = $tax_amount;
+        $this->cart[$productId]['total_line_amount'] = $total_line_amount;
+        $this->cart[$productId]['total_value'] = $total_line_amount; // Actualizar el valor total
     }
 
     public function completePurchase()
@@ -241,19 +255,53 @@ class Create extends Component
                 'unit_code' => $item['unit_code'] ?? 'EA',
                 'quantity' => $item['quantity'],
                 'unit_price' => $item['unit_price'],
-                'line_extension_amount' => $item['line_extension_amount'],
+                'quantity_for_unit' => $item['quantity_for_unit'] ?? null, // Añadir quantity_for_unit
+                'item_subtotal' => $item['line_extension_amount'], // Subtotal por ítem antes de descuentos
+                'line_extension_amount' => $item['line_extension_amount'] - ($item['discount'] ?? 0), // Importe de línea después de descuentos
+                'discount' => $item['discount'] ?? 0, // Campo de descuento
                 'tax_percent' => $item['tax_percent'],
                 'tax_amount' => $item['tax_amount'],
                 'total_line_amount' => $item['total_line_amount'],
-                'valor_total' => $item['total_line_amount'], // Añadir el valor_total que coincide con el total_line_amount
+                'total_value' => $item['total_value'], // Campo de valor total
             ]);
         }
 
-        // Actualizar stock de productos
+        // Actualizar stock de productos y unidad de medida (unit_md)
         foreach ($this->cart as $productId => $item) {
             $product = Product::find($productId);
             if ($product) {
-                $product->stock += $item['quantity']; // Aumentar stock con la cantidad comprada
+                // Calcular la cantidad total a agregar al stock
+                // quantity representa el número de cajas (unidades de empaque)
+                // quantity_for_unit representa cuántas unidades vienen en cada caja
+                $totalQuantity = $item['quantity'] * ($item['quantity_for_unit'] ?: 1);
+                
+                $product->stock += $totalQuantity; // Aumentar stock con la cantidad total comprada
+                // Actualizar el campo unit_md con la concatenación de unit_code y quantity
+                $product->unit_md = $item['unit_code'] . ' x ' . $item['quantity'];
+                
+                // Si la unidad de medida es CJ (caja) y quantity_for_unit > 1, calcular precio unitario
+                $effectiveUnitPriceWithoutTax = $item['unit_price'];
+                if (strtolower($item['unit_code']) === 'cj' && $item['quantity_for_unit'] && $item['quantity_for_unit'] > 1) {
+                    $effectiveUnitPriceWithoutTax = $item['unit_price'] / $item['quantity_for_unit'];
+                }
+                
+                // Calcular precio con IVA incluido (precio de costo final)
+                $taxRateDecimal = $item['tax_percent'] / 100;
+                $effectiveUnitPriceWithTax = $effectiveUnitPriceWithoutTax * (1 + $taxRateDecimal);
+                
+                // Actualizar precios del producto
+                $product->cost_price = $effectiveUnitPriceWithTax;
+                
+                // Calcular precio de venta con margen de ganancia
+                if ($product->profit_margin) {
+                    $profitDecimal = $product->profit_margin / 100;
+                    $product->selling_price = $effectiveUnitPriceWithTax * (1 + $profitDecimal);
+                } else {
+                    $product->selling_price = $effectiveUnitPriceWithTax;
+                }
+                
+                $product->tax_rate = $item['tax_percent']; // Actualizar el porcentaje de impuesto
+                $product->quantity_for_unit = $item['quantity_for_unit']; // Actualizar quantity_for_unit si está disponible
                 $product->save();
             }
         }

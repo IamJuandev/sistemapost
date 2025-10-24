@@ -22,22 +22,26 @@ class PurchaseItem extends Model
         'unit_code',
         'quantity',
         'unit_price',
+        'item_subtotal',
         'line_extension_amount',
+        'discount',
         'tax_percent',
         'tax_amount',
         'total_line_amount',
-        'valor_total',
+        'total_value',
     ];
 
     protected $casts = [
         'line_id' => 'integer',
         'quantity' => 'integer',
         'unit_price' => 'decimal:2',
+        'item_subtotal' => 'decimal:2',
         'line_extension_amount' => 'decimal:2',
+        'discount' => 'decimal:2',
         'tax_percent' => 'decimal:2',
         'tax_amount' => 'decimal:2',
         'total_line_amount' => 'decimal:2',
-        'valor_total' => 'decimal:2',
+        'total_value' => 'decimal:2',
     ];
 
     public function purchase(): BelongsTo

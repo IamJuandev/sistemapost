@@ -34,7 +34,7 @@ class Index extends Component
         'description' => 'nullable|string',
         'barcode' => 'required|string|max:255|unique:products,barcode',
         'cost_price' => 'required|numeric',
-        'tax_rate' => 'required|numeric|min:0|max:100',
+        'tax_rate' => 'nullable|numeric|min:0|max:100',
         'profit_margin' => 'required|numeric|min:0|max:100',
         'selling_price' => 'required|numeric',
         'stock' => 'required|integer|min:0',
@@ -51,7 +51,8 @@ class Index extends Component
 
     public function updatedTaxRate()
     {
-        $this->calculateSellingPrice();
+        // No hacer nada ya que el impuesto se controla desde compras
+        // $this->calculateSellingPrice();
     }
 
     public function updatedProfitMargin()
@@ -62,9 +63,9 @@ class Index extends Component
     private function calculateSellingPrice()
     {
         if ($this->cost_price && $this->tax_rate && $this->profit_margin) {
-            $tax = $this->cost_price * ($this->tax_rate / 100);
+            // El precio de costo ya incluye el IVA, así que no se vuelve a aplicar
             $profit = $this->cost_price * ($this->profit_margin / 100);
-            $this->selling_price = $this->cost_price + $tax + $profit;
+            $this->selling_price = $this->cost_price + $profit;
         }
     }
 
@@ -140,6 +141,8 @@ class Index extends Component
         $rules = $this->rules;
         // Remove unique rule for barcode during update to exclude the current product
         $rules['barcode'] = 'required|string|max:255|unique:products,barcode,' . $this->selectedProduct->id;
+        // Remove tax_rate from validation since it's controlled by purchases
+        unset($rules['tax_rate']);
         
         $this->validate($rules);
 
@@ -149,7 +152,7 @@ class Index extends Component
                 'description' => $this->description,
                 'barcode' => $this->barcode,
                 'cost_price' => $this->cost_price,
-                'tax_rate' => $this->tax_rate,
+                // Excluir tax_rate ya que se actualiza desde compras
                 'profit_margin' => $this->profit_margin,
                 'selling_price' => $this->selling_price,
                 'stock' => $this->stock,

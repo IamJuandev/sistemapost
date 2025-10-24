@@ -23,6 +23,8 @@ class Product extends Model
         'image_url',
         'category_id',
         'supplier_id',
+        'unit_md',
+        'quantity_for_unit',
     ];
 
     protected $casts = [
@@ -31,6 +33,8 @@ class Product extends Model
         'profit_margin' => 'decimal:2',
         'selling_price' => 'decimal:2',
         'stock' => 'integer',
+        'unit_md' => 'string',
+        'quantity_for_unit' => 'integer',
     ];
 
     public function category(): BelongsTo

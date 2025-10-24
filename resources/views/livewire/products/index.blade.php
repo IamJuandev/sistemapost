@@ -103,7 +103,13 @@ Asegúrate de tener Alpine.js disponible en tu proyecto para las transiciones.
                             Proveedor</th>
                         <th scope="col"
                             class="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wider">
+                            Precio Costo</th>
+                        <th scope="col"
+                            class="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wider">
                             Precio Venta</th>
+                        <th scope="col"
+                            class="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wider">
+                            Unidad de Medida</th>
                         <th scope="col"
                             class="px-6 py-3 text-center text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wider">
                             Stock</th>
@@ -144,15 +150,30 @@ Asegúrate de tener Alpine.js disponible en tu proyecto para las transiciones.
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500 dark:text-slate-400">{{
                             $product->supplier->company_name ?? 'N/A' }}</td>
                         <td
+                            class="px-6 py-4 whitespace-nowrap text-sm text-slate-800 dark:text-slate-100">
+                            ${{ number_format(round($product->cost_price / 100) * 100, 0) }}</td>
+                        <td
                             class="px-6 py-4 whitespace-nowrap text-sm text-slate-800 dark:text-slate-100 font-semibold">
-                            ${{ number_format($product->selling_price, 2) }}</td>
+                            ${{ number_format(round($product->selling_price / 100) * 100, 0) }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500 dark:text-slate-400">
+                            {{ $product->unit_md ?? 'N/A' }}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-center">
-                            <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full 
-                                @if($product->stock > 10) bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-300
-                                @elseif($product->stock > 0) bg-yellow-100 dark:bg-yellow-900/50 text-yellow-800 dark:text-yellow-300
-                                @else bg-red-100 dark:bg-red-900/50 text-red-800 dark:text-red-300 @endif">
-                                {{ $product->stock }}
-                            </span>
+                            <div class="flex flex-col items-center">
+                                <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                    @if($product->stock > 10) bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-300
+                                    @elseif($product->stock > 0) bg-yellow-100 dark:bg-yellow-900/50 text-yellow-800 dark:text-yellow-300
+                                    @else bg-red-100 dark:bg-red-900/50 text-red-800 dark:text-red-300 @endif">
+                                    {{ $product->stock }}
+                                </span>
+                                @if($product->quantity_for_unit && $product->quantity_for_unit > 1)
+                                    <div class="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                                        {{ floor($product->stock / $product->quantity_for_unit) }} cajas
+                                        @if($product->stock % $product->quantity_for_unit > 0)
+                                            + {{ $product->stock % $product->quantity_for_unit }} unidades
+                                        @endif
+                                    </div>
+                                @endif
+                            </div>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                             <div class="flex items-center justify-end space-x-4">

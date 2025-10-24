@@ -25,6 +25,7 @@ class Form extends Component
     public $image_url;
     public $category_id;
     public $supplier_id;
+    public $unit_md;
 
     protected $rules = [
         'name' => 'required|string|max:255',
@@ -69,6 +70,7 @@ class Form extends Component
         $this->image_url = $this->product->image_url;
         $this->category_id = $this->product->category_id;
         $this->supplier_id = $this->product->supplier_id;
+        $this->unit_md = $this->product->unit_md;
     }
 
     public function resetForm()
@@ -84,6 +86,7 @@ class Form extends Component
         $this->image_url = '';
         $this->category_id = '';
         $this->supplier_id = '';
+        $this->unit_md = '';
     }
 
     // Update selling price when cost price, tax rate, or profit margin changes
@@ -126,13 +129,15 @@ class Form extends Component
             'description' => $this->description,
             'barcode' => $this->barcode,
             'cost_price' => $this->cost_price,
-            'tax_rate' => $this->tax_rate,
+            // Solo actualizar tax_rate si es creación, no edición
+            'tax_rate' => $this->mode === 'create' ? $this->tax_rate : $this->product->tax_rate,
             'profit_margin' => $this->profit_margin,
             'selling_price' => $this->selling_price,
             'stock' => $this->stock,
             'image_url' => $this->image_url,
             'category_id' => $this->category_id,
             'supplier_id' => $this->supplier_id,
+            'unit_md' => $this->unit_md,
         ];
 
         if ($this->mode === 'create') {

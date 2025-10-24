@@ -24,7 +24,7 @@ return new class extends Migration
             $table->decimal('subtotal', 10, 2)->nullable();
             $table->integer('quantity_for_unit')->nullable();
             $table->decimal('ubua', 10, 2)->nullable();
-            $table->varchar('unit_md')->nullable();
+            $table->string('unit_md')->nullable();
             $table->timestamps();
         });
     }

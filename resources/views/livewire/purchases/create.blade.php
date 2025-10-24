@@ -167,8 +167,8 @@
                                     <p class="text-slate-500 dark:text-slate-400">${{ number_format($item['unit_price'],
                                         2) }} x {{ $item['quantity'] }}</p>
                                 </td>
-                                <td class="py-3 text-right font-medium text-slate-800 dark:text-slate-100">${{
-                                    number_format($item['total_line_amount'], 2) }}</td>
+                                <td class="py-3 text-right font-medium text-slate-800 dark:text-slate-100\">${{
+                                    number_format($item['total_value'] ?? $item['total_line_amount'], 2) }}</td>
                             </tr>
                             @endforeach
                         </tbody>

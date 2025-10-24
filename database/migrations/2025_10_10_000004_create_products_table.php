@@ -13,14 +13,14 @@ return new class extends Migration
     {
         Schema::create('products', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
+            $table->string('name')->nullable();
             $table->text('description')->nullable();
             $table->string('barcode')->unique();
-            $table->decimal('cost_price', 10, 2);
-            $table->decimal('tax_rate', 5, 2);
-            $table->decimal('profit_margin', 5, 2);
-            $table->decimal('selling_price', 10, 2);
-            $table->integer('stock')->default(0);
+            $table->decimal('cost_price', 10, 2)->nullable();
+            $table->decimal('tax_rate', 5, 2)->nullable();
+            $table->decimal('profit_margin', 5, 2)->nullable();
+            $table->decimal('selling_price', 10, 2)->nullable();
+            $table->integer('stock')->default(0)->nullable();
             $table->string('image_url')->nullable();
             $table->foreignId('category_id')->constrained()->onDelete('cascade');
             $table->foreignId('supplier_id')->constrained()->onDelete('cascade');

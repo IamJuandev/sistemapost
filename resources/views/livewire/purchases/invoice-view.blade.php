@@ -90,7 +90,10 @@
                                 Cantidad</th>
                             <th
                                 class="py-3 text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase text-right">
-                                Precio Unitario</th>
+                                Precio Unit.</th>
+                            <th
+                                class="py-3 text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase text-right">
+                                Descuento</th>
                             <th
                                 class="py-3 text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase text-right">
                                 Total</th>
@@ -99,17 +102,24 @@
                     <tbody class="divide-y divide-slate-100 dark:divide-slate-700">
                         @forelse($invoice->purchaseItems as $item)
                         <tr>
-                            <td class="py-4 font-medium text-slate-800 dark:text-slate-100">{{ $item->product->name ??
-                                $item->description }}</td>
+                            <td class="py-4 font-medium text-slate-800 dark:text-slate-100">
+                                <div>{{ $item->product->name ?? $item->description }}</div>
+                                @if($item->product_code)
+                                <div class="text-xs text-slate-500 dark:text-slate-400">Código: {{ $item->product_code
+                                    }}</div>
+                                @endif
+                            </td>
                             <td class="py-4 text-slate-600 dark:text-slate-300 text-center">{{ $item->quantity }}</td>
                             <td class="py-4 text-slate-600 dark:text-slate-300 text-right">${{
                                 number_format($item->unit_price ?? 0, 2) }}</td>
+                            <td class="py-4 text-slate-600 dark:text-slate-300 text-right">${{
+                                number_format($item->discount ?? 0, 2) }}</td>
                             <td class="py-4 font-semibold text-slate-800 dark:text-slate-100 text-right">${{
-                                number_format(($item->unit_price * $item->quantity) ?? 0, 2) }}</td>
+                                number_format($item->total_value ?? 0, 2) }}</td>
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="4" class="py-8 text-center text-slate-500 dark:text-slate-400">No hay productos
+                            <td colspan="5" class="py-8 text-center text-slate-500 dark:text-slate-400">No hay productos
                                 en esta factura.</td>
                         </tr>
                         @endforelse
@@ -134,7 +144,7 @@
                     <div
                         class="flex justify-between text-lg font-bold pt-2 mt-2 border-t border-slate-300 dark:border-slate-600">
                         <span class="text-slate-800 dark:text-slate-100">Total:</span>
-                        <span class="text-indigo-600 dark:text-indigo-400">${{ number_format($invoice->total_with_tax ??
+                        <span class="text-indigo-600 dark:text-indigo-400">${{ number_format($invoice->total_amount ??
                             0, 2) }}</span>
                     </div>
                 </div>

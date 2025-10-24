@@ -61,8 +61,13 @@
         </div>
         <div>
             <label for="tax_rate" class="block text-sm font-medium text-slate-700">Impuesto (%)</label>
-            <input type="number" step="0.01" id="tax_rate" wire:model.live="tax_rate"
-                class="mt-1 block w-full border-slate-300 rounded-lg shadow-sm focus:border-indigo-500 focus:ring-indigo-500 @error('tax_rate') border-red-500 @enderror">
+            <input type="number" step="0.01" id="tax_rate" wire:model.live="tax_rate" 
+                @if($mode === 'edit') readonly @endif
+                class="mt-1 block w-full border-slate-300 rounded-lg shadow-sm focus:border-indigo-500 focus:ring-indigo-500 @error('tax_rate') border-red-500 @enderror 
+                @if($mode === 'edit') bg-slate-100 cursor-not-allowed @endif">
+            @if($mode === 'edit')
+                <small class="text-slate-500">El impuesto se actualiza automáticamente desde las compras</small>
+            @endif
             @error('tax_rate') <span class="text-red-500 text-sm mt-1">{{ $message }}</span> @enderror
         </div>
         <div>
@@ -76,6 +81,11 @@
             <input type="text" id="image_url" wire:model="image_url"
                 class="mt-1 block w-full border-slate-300 rounded-lg shadow-sm focus:border-indigo-500 focus:ring-indigo-500 @error('image_url') border-red-500 @enderror">
             @error('image_url') <span class="text-red-500 text-sm mt-1">{{ $message }}</span> @enderror
+        </div>
+        <div>
+            <label for="unit_md" class="block text-sm font-medium text-slate-700">Unidad de Medida</label>
+            <input type="text" id="unit_md" wire:model="unit_md" readonly
+                class="mt-1 block w-full bg-slate-100 border-slate-300 rounded-lg shadow-sm focus:ring-0 cursor-not-allowed">
         </div>
     </div>
     <div class="md:col-span-2">

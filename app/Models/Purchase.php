@@ -64,4 +64,30 @@ class Purchase extends Model
     {
         return $this->hasMany(PurchaseItem::class, 'invoice_number', 'invoice_number');
     }
+    
+    /**
+     * Calcula los totales de la compra a partir de los ítems
+     */
+    public function calculateTotals(): array
+    {
+        $items = $this->purchaseItems;
+        $subtotal = 0;
+        $taxAmount = 0;
+        $totalWithTax = 0;
+        
+        foreach ($items as $item) {
+            $itemTotal = ($item->unit_price * $item->quantity) - ($item->discount ?? 0);
+            $itemTax = $itemTotal * ($item->tax_percent / 100);
+            
+            $subtotal += $itemTotal;
+            $taxAmount += $itemTax;
+            $totalWithTax += $itemTotal + $itemTax;
+        }
+        
+        return [
+            'subtotal' => $subtotal,
+            'tax_amount' => $taxAmount,
+            'total_with_tax' => $totalWithTax
+        ];
+    }
 }
