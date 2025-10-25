@@ -85,7 +85,7 @@
                     <span class="text-sm font-bold text-white bg-indigo-600 rounded-full px-3 py-1 mr-2">2</span>
                     Agregar Productos a la Compra
                 </h2>
-                <div class="grid grid-cols-1 md:grid-cols-6 gap-4">
+                <div class="grid grid-cols-1 md:grid-cols-8 gap-4">
                     <div class="md:col-span-2">
                         <label
                             class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">Producto</label>
@@ -116,9 +116,19 @@
                             }}</span> @enderror
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">Impuesto
+                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">IVA
                             %</label>
                         <input type="number" step="0.01" wire:model="tax_percent" min="0" max="100"
+                            class="block w-full rounded-lg border-slate-300 py-2.5 px-4 text-base text-slate-900 shadow-sm transition placeholder:text-slate-400 focus:border-indigo-500 focus:ring-indigo-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-400 dark:focus:border-indigo-500 dark:focus:ring-indigo-500" />
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">IBUA</label>
+                        <input type="number" step="0.01" wire:model="ibua" min="0"
+                            class="block w-full rounded-lg border-slate-300 py-2.5 px-4 text-base text-slate-900 shadow-sm transition placeholder:text-slate-400 focus:border-indigo-500 focus:ring-indigo-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-400 dark:focus:border-indigo-500 dark:focus:ring-indigo-500" />
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">ICUI</label>
+                        <input type="number" step="0.01" wire:model="icui" min="0"
                             class="block w-full rounded-lg border-slate-300 py-2.5 px-4 text-base text-slate-900 shadow-sm transition placeholder:text-slate-400 focus:border-indigo-500 focus:ring-indigo-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-400 dark:focus:border-indigo-500 dark:focus:ring-indigo-500" />
                     </div>
                     <div class="flex items-end">
@@ -167,7 +177,7 @@
                                     <p class="text-slate-500 dark:text-slate-400">${{ number_format($item['unit_price'],
                                         2) }} x {{ $item['quantity'] }}</p>
                                 </td>
-                                <td class="py-3 text-right font-medium text-slate-800 dark:text-slate-100\">${{
+                                <td class="py-3 text-right font-medium text-slate-800 dark:text-slate-100">${{
                                     number_format($item['total_value'] ?? $item['total_line_amount'], 2) }}</td>
                             </tr>
                             @endforeach
@@ -184,8 +194,18 @@
                                 }}</span>
                         </div>
                         <div class="flex justify-between">
-                            <span class="text-slate-600 dark:text-slate-300">Impuestos:</span>
+                            <span class="text-slate-600 dark:text-slate-300">IVA:</span>
                             <span class="font-medium text-slate-800 dark:text-slate-100">${{ number_format($tax_amount,
+                                2) }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-slate-600 dark:text-slate-300">IBUA:</span>
+                            <span class="font-medium text-slate-800 dark:text-slate-100">${{ number_format($ibua_amount,
+                                2) }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-slate-600 dark:text-slate-300">ICUI:</span>
+                            <span class="font-medium text-slate-800 dark:text-slate-100">${{ number_format($icui_amount,
                                 2) }}</span>
                         </div>
                         <div

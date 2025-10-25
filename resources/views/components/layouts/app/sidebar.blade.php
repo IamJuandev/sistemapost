@@ -27,6 +27,8 @@
                     :current="request()->routeIs('customers.*')" wire:navigate>Clientes</flux:navlist.item>
                 <flux:navlist.item icon="currency-dollar" :href="route('sales.create')"
                     :current="request()->routeIs('sales.*')" wire:navigate>Venta</flux:navlist.item>
+                <flux:navlist.item icon="currency-dollar" :href="route('sales.invoices')"
+                    :current="request()->routeIs('sales.*')" wire:navigate>Facturas venta</flux:navlist.item>
                 <flux:navlist.item icon="shopping-cart" :href="route('purchases.create')"
                     :current="request()->routeIs('purchases.*')" wire:navigate>Compras</flux:navlist.item>
                 <flux:navlist.item icon="document-currency-dollar" :href="route('purchases.invoices')"

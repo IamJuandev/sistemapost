@@ -27,6 +27,8 @@ class PurchaseItem extends Model
         'discount',
         'tax_percent',
         'tax_amount',
+        'ibua',
+        'icui',
         'total_line_amount',
         'total_value',
     ];
@@ -40,6 +42,8 @@ class PurchaseItem extends Model
         'discount' => 'decimal:2',
         'tax_percent' => 'decimal:2',
         'tax_amount' => 'decimal:2',
+        'ibua' => 'decimal:2',
+        'icui' => 'decimal:2',
         'total_line_amount' => 'decimal:2',
         'total_value' => 'decimal:2',
     ];

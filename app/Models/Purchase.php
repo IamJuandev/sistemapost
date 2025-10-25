@@ -20,7 +20,9 @@ class Purchase extends Model
         'invoice_number',
         'supplier_name',
         'subtotal',
-        'tax_amount',
+        'tax_amount',      // IVA
+        'ibua_amount',     // Impuesto al consumo de bebidas y alimentos
+        'icui_amount',     // Impuesto de industria y comercio
         'withholding_amount',
         'total_with_tax',
         'currency',
@@ -39,7 +41,9 @@ class Purchase extends Model
         'due_date' => 'date',
         'authorization_expiration' => 'date',
         'subtotal' => 'decimal:2',
-        'tax_amount' => 'decimal:2',
+        'tax_amount' => 'decimal:2',      // IVA
+        'ibua_amount' => 'decimal:2',     // Impuesto al consumo de bebidas y alimentos
+        'icui_amount' => 'decimal:2',     // Impuesto de industria y comercio
         'withholding_amount' => 'decimal:2',
         'total_with_tax' => 'decimal:2',
         'total_amount' => 'decimal:2',
@@ -72,21 +76,31 @@ class Purchase extends Model
     {
         $items = $this->purchaseItems;
         $subtotal = 0;
-        $taxAmount = 0;
+        $taxAmount = 0;      // IVA
+        $ibuaAmount = 0;     // Impuesto al consumo de bebidas y alimentos
+        $icuiAmount = 0;     // Impuesto de industria y comercio
         $totalWithTax = 0;
         
         foreach ($items as $item) {
-            $itemTotal = ($item->unit_price * $item->quantity) - ($item->discount ?? 0);
-            $itemTax = $itemTotal * ($item->tax_percent / 100);
+            $itemSubtotal = ($item->unit_price * $item->quantity) - ($item->discount ?? 0);
             
-            $subtotal += $itemTotal;
+            // Calcular los diferentes tipos de impuestos
+            $itemTax = $itemSubtotal * ($item->tax_percent / 100);  // IVA
+            $itemIbua = $item->ibua ?? 0;  // IBUA (ya calculado o valor fijo)
+            $itemIcui = $item->icui ?? 0;  // ICUI (ya calculado o valor fijo)
+            
+            $subtotal += $itemSubtotal;
             $taxAmount += $itemTax;
-            $totalWithTax += $itemTotal + $itemTax;
+            $ibuaAmount += $itemIbua;
+            $icuiAmount += $itemIcui;
+            $totalWithTax += $itemSubtotal + $itemTax + $itemIbua + $itemIcui;
         }
         
         return [
             'subtotal' => $subtotal,
             'tax_amount' => $taxAmount,
+            'ibua_amount' => $ibuaAmount,
+            'icui_amount' => $icuiAmount,
             'total_with_tax' => $totalWithTax
         ];
     }

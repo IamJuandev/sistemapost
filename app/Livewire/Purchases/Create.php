@@ -18,12 +18,16 @@ class Create extends Component
     public $quantity = 1;
     public $unit_price = 0;
     public $tax_percent = 0;
+    public $ibua = 0;       // Impuesto al consumo de bebidas y alimentos
+    public $icui = 0;       // Impuesto de industria y comercio
     public $invoice_prefix = '';
     public $invoice_number = '';
     public $supplier_nit = '';
     public $supplier_name = '';
     public $subtotal = 0;
     public $tax_amount = 0;
+    public $ibua_amount = 0;    // Total de IBUA para la compra
+    public $icui_amount = 0;    // Total de ICUI para la compra
     public $withholding_amount = 0;
     public $total_with_tax = 0;
     public $currency = 'COP';
@@ -44,6 +48,8 @@ class Create extends Component
         'quantity' => 'required|integer|min:1',
         'unit_price' => 'required|numeric|min:0',
         'tax_percent' => 'required|numeric|min:0|max:100',
+        'ibua' => 'nullable|numeric|min:0',
+        'icui' => 'nullable|numeric|min:0',
     ];
 
     public function mount()
@@ -86,7 +92,7 @@ class Create extends Component
                 
                 // Si el campo de porcentaje de impuestos está en 0, usar el valor del producto
                 if ($this->tax_percent == 0 || $this->tax_percent == '') {
-                    $this->tax_percent = $product->tax_rate;
+                    $this->tax_percent = $product->tax_rate ?? 0; // Usar el valor del producto o 0 si no existe
                 }
             }
         }
@@ -102,16 +108,22 @@ class Create extends Component
     {
         $subtotal = collect($this->cart)->sum('line_extension_amount');
         $tax_amount = collect($this->cart)->sum('tax_amount');
-        $total_with_tax = $subtotal + $tax_amount;
+        $ibua_amount = collect($this->cart)->sum('ibua');
+        $icui_amount = collect($this->cart)->sum('icui');
+        $total_with_tax = $subtotal + $tax_amount + $ibua_amount + $icui_amount;
         
         // Actualizar las propiedades públicas para que se reflejen en el formulario
         $this->subtotal = $subtotal;
         $this->tax_amount = $tax_amount;
+        $this->ibua_amount = $ibua_amount;
+        $this->icui_amount = $icui_amount;
         $this->total_with_tax = $total_with_tax;
         
         return view('livewire.purchases.create', [
             'subtotal' => $subtotal,
             'tax_amount' => $tax_amount,
+            'ibua_amount' => $ibua_amount,
+            'icui_amount' => $icui_amount,
             'total_with_tax' => $total_with_tax,
         ]);
     }
@@ -123,6 +135,8 @@ class Create extends Component
             'quantity' => 'required|integer|min:1',
             'unit_price' => 'required|numeric|min:0',
             'tax_percent' => 'required|numeric|min:0|max:100',
+            'ibua' => 'nullable|numeric|min:0',
+            'icui' => 'nullable|numeric|min:0',
         ]);
         
         $product = Product::find($this->selectedProduct);
@@ -139,7 +153,7 @@ class Create extends Component
         $discount = 0; // Temporalmente sin descuento, se puede implementar una funcionalidad para agregar descuentos
         $subtotal_after_discount = $line_extension_amount - $discount;
         $tax_amount = $subtotal_after_discount * ($this->tax_percent / 100);
-        $total_line_amount = $subtotal_after_discount + $tax_amount;
+        $total_line_amount = $subtotal_after_discount + $tax_amount + $this->ibua + $this->icui;
         
         if (isset($this->cart[$productId])) {
             // If product already in cart, update quantity
@@ -148,7 +162,9 @@ class Create extends Component
             $this->cart[$productId]['discount'] = 0; // Actualizar si se implementa descuento
             $this->cart[$productId]['subtotal_after_discount'] = $this->cart[$productId]['line_extension_amount'] - $this->cart[$productId]['discount'];
             $this->cart[$productId]['tax_amount'] = $this->cart[$productId]['subtotal_after_discount'] * ($this->cart[$productId]['tax_percent'] / 100);
-            $this->cart[$productId]['total_line_amount'] = $this->cart[$productId]['subtotal_after_discount'] + $this->cart[$productId]['tax_amount'];
+            $this->cart[$productId]['ibua'] = $this->cart[$productId]['quantity'] * ($this->cart[$productId]['ibua'] / ($this->cart[$productId]['quantity'] - ($this->cart[$productId]['quantity'] > 1 ? 1 : 0))); // Mantener proporcionalidad en IBUA
+            $this->cart[$productId]['icui'] = $this->cart[$productId]['quantity'] * ($this->cart[$productId]['icui'] / ($this->cart[$productId]['quantity'] - ($this->cart[$productId]['quantity'] > 1 ? 1 : 0))); // Mantener proporcionalidad en ICUI
+            $this->cart[$productId]['total_line_amount'] = $this->cart[$productId]['subtotal_after_discount'] + $this->cart[$productId]['tax_amount'] + $this->cart[$productId]['ibua'] + $this->cart[$productId]['icui'];
         } else {
             // Add new product to cart
             $this->cart[$productId] = [
@@ -165,6 +181,8 @@ class Create extends Component
                 'discount' => $discount,
                 'subtotal_after_discount' => $subtotal_after_discount,
                 'tax_amount' => $tax_amount,
+                'ibua' => $this->ibua,
+                'icui' => $this->icui,
                 'total_line_amount' => $total_line_amount,
                 'total_value' => $total_line_amount, // Total final después de aplicar descuentos e impuestos
                 'line_id' => count($this->cart) + 1, // Agregar line_id secuencial
@@ -176,6 +194,8 @@ class Create extends Component
         $this->quantity = 1;
         $this->unit_price = 0;
         $this->tax_percent = 0;
+        $this->ibua = 0;    // Reset IBUA
+        $this->icui = 0;    // Reset ICUI
     }
 
     public function removeFromCart($productId)
@@ -194,7 +214,7 @@ class Create extends Component
         $line_extension_amount = $this->cart[$productId]['unit_price'] * $newQuantity;
         $subtotal_after_discount = $line_extension_amount - ($this->cart[$productId]['discount'] ?? 0);
         $tax_amount = $subtotal_after_discount * ($this->cart[$productId]['tax_percent'] / 100);
-        $total_line_amount = $subtotal_after_discount + $tax_amount;
+        $total_line_amount = $subtotal_after_discount + $tax_amount + $this->cart[$productId]['ibua'] + $this->cart[$productId]['icui'];
         $this->cart[$productId]['line_extension_amount'] = $line_extension_amount;
         $this->cart[$productId]['subtotal_after_discount'] = $subtotal_after_discount;
         $this->cart[$productId]['tax_amount'] = $tax_amount;
@@ -217,7 +237,9 @@ class Create extends Component
         // Calcular totales
         $subtotal = collect($this->cart)->sum('line_extension_amount');
         $tax_amount = collect($this->cart)->sum('tax_amount');
-        $total_with_tax = $subtotal + $tax_amount;
+        $ibua_amount = collect($this->cart)->sum('ibua');
+        $icui_amount = collect($this->cart)->sum('icui');
+        $total_with_tax = $subtotal + $tax_amount + $ibua_amount + $icui_amount;
 
         // Obtener información del proveedor
         $supplier = Supplier::find($this->selectedSupplier);
@@ -231,6 +253,8 @@ class Create extends Component
             'supplier_name' => $supplier->company_name,
             'subtotal' => $subtotal,
             'tax_amount' => $tax_amount,
+            'ibua_amount' => $ibua_amount,
+            'icui_amount' => $icui_amount,
             'withholding_amount' => $this->withholding_amount,
             'total_with_tax' => $total_with_tax,
             'currency' => $this->currency,
@@ -261,6 +285,8 @@ class Create extends Component
                 'discount' => $item['discount'] ?? 0, // Campo de descuento
                 'tax_percent' => $item['tax_percent'],
                 'tax_amount' => $item['tax_amount'],
+                'ibua' => $item['ibua'],
+                'icui' => $item['icui'],
                 'total_line_amount' => $item['total_line_amount'],
                 'total_value' => $item['total_value'], // Campo de valor total
             ]);
@@ -285,9 +311,12 @@ class Create extends Component
                     $effectiveUnitPriceWithoutTax = $item['unit_price'] / $item['quantity_for_unit'];
                 }
                 
-                // Calcular precio con IVA incluido (precio de costo final)
+                // Calcular precio con todos los impuestos incluidos (precio de costo final)
                 $taxRateDecimal = $item['tax_percent'] / 100;
                 $effectiveUnitPriceWithTax = $effectiveUnitPriceWithoutTax * (1 + $taxRateDecimal);
+                
+                // Sumar impuestos fijos (IBUA e ICUI) al precio unitario
+                $effectiveUnitPriceWithTax += $item['ibua'] + $item['icui'];
                 
                 // Actualizar precios del producto
                 $product->cost_price = $effectiveUnitPriceWithTax;
@@ -300,7 +329,6 @@ class Create extends Component
                     $product->selling_price = $effectiveUnitPriceWithTax;
                 }
                 
-                $product->tax_rate = $item['tax_percent']; // Actualizar el porcentaje de impuesto
                 $product->quantity_for_unit = $item['quantity_for_unit']; // Actualizar quantity_for_unit si está disponible
                 $product->save();
             }

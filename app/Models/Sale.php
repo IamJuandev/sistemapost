@@ -21,6 +21,8 @@ class Sale extends Model
         'cufe',
         'subtotal',
         'tax_amount',
+        'ibua_amount',     // Impuesto al consumo de bebidas y alimentos
+        'icui_amount',     // Impuesto de industria y comercio
         'discount_amount',
         'total_amount',
         'currency',
@@ -39,6 +41,8 @@ class Sale extends Model
         'due_date' => 'date',
         'subtotal' => 'decimal:2',
         'tax_amount' => 'decimal:2',
+        'ibua_amount' => 'decimal:2',
+        'icui_amount' => 'decimal:2',
         'discount_amount' => 'decimal:2',
         'total_amount' => 'decimal:2',
     ];

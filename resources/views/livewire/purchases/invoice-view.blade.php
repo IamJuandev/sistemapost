@@ -135,12 +135,34 @@
                         <span class="font-medium text-slate-800 dark:text-slate-100">${{
                             number_format($invoice->subtotal ?? 0, 2) }}</span>
                     </div>
+                    @if($invoice->tax_amount > 0)
                     <div class="flex justify-between">
-                        <span class="text-slate-600 dark:text-slate-300">Impuestos ({{ number_format($invoice->subtotal
-                            > 0 ? ($invoice->tax_amount / $invoice->subtotal) * 100 : 0, 0) }}%):</span>
+                        <span class="text-slate-600 dark:text-slate-300">IVA:</span>
                         <span class="font-medium text-slate-800 dark:text-slate-100">${{
                             number_format($invoice->tax_amount ?? 0, 2) }}</span>
                     </div>
+                    @endif
+                    @if($invoice->ibua_amount > 0)
+                    <div class="flex justify-between">
+                        <span class="text-slate-600 dark:text-slate-300">IBUA:</span>
+                        <span class="font-medium text-slate-800 dark:text-slate-100">${{
+                            number_format($invoice->ibua_amount ?? 0, 2) }}</span>
+                    </div>
+                    @endif
+                    @if($invoice->icui_amount > 0)
+                    <div class="flex justify-between">
+                        <span class="text-slate-600 dark:text-slate-300">ICUI:</span>
+                        <span class="font-medium text-slate-800 dark:text-slate-100">${{
+                            number_format($invoice->icui_amount ?? 0, 2) }}</span>
+                    </div>
+                    @endif
+                    @if($invoice->withholding_amount > 0)
+                    <div class="flex justify-between">
+                        <span class="text-slate-600 dark:text-slate-300">Retención:</span>
+                        <span class="font-medium text-slate-800 dark:text-slate-100">${{
+                            number_format($invoice->withholding_amount ?? 0, 2) }}</span>
+                    </div>
+                    @endif
                     <div
                         class="flex justify-between text-lg font-bold pt-2 mt-2 border-t border-slate-300 dark:border-slate-600">
                         <span class="text-slate-800 dark:text-slate-100">Total:</span>

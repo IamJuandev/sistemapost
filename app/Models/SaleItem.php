@@ -24,6 +24,8 @@ class SaleItem extends Model
         'line_extension_amount',
         'tax_percent',
         'tax_amount',
+        'ibua',
+        'icui',
         'total_line_amount',
         'subtotal',
     ];
@@ -35,6 +37,8 @@ class SaleItem extends Model
         'line_extension_amount' => 'decimal:2',
         'tax_percent' => 'decimal:2',
         'tax_amount' => 'decimal:2',
+        'ibua' => 'decimal:2',
+        'icui' => 'decimal:2',
         'total_line_amount' => 'decimal:2',
         'subtotal' => 'decimal:2',
     ];
