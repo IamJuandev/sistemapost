@@ -33,9 +33,24 @@
         <div class="bg-white dark:bg-slate-800 rounded-xl shadow-md border border-slate-200 dark:border-slate-700">
             <header class="p-6 md:p-8 flex justify-between items-start">
                 <div>
-                    <h2 class="text-2xl font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-widest">Tu
-                        Empresa</h2>
-                    <p class="text-slate-500 dark:text-slate-400">Dirección de tu empresa, Ciudad</p>
+                    @php
+                        $companyInfo = app('App\Models\CompanyInfo')::first();
+                    @endphp
+                    @if($companyInfo)
+                        <h2 class="text-2xl font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-widest">
+                            {{ $companyInfo->trade_name ?? $companyInfo->company_name }}
+                        </h2>
+                        <p class="text-slate-500 dark:text-slate-400">
+                            {{ $companyInfo->address }}, {{ $companyInfo->city }}, {{ $companyInfo->department }}
+                        </p>
+                        <p class="text-slate-500 dark:text-slate-400">
+                            NIT: {{ $companyInfo->nit }}-{{ $companyInfo->dv }}
+                        </p>
+                    @else
+                        <h2 class="text-2xl font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-widest">Tu
+                            Empresa</h2>
+                        <p class="text-slate-500 dark:text-slate-400">Dirección de tu empresa, Ciudad</p>
+                    @endif
                 </div>
                 <div class="text-right">
                     <h1 class="text-3xl font-bold text-slate-800 dark:text-slate-100 uppercase">Factura</h1>

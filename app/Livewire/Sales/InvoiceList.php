@@ -48,7 +48,24 @@ class InvoiceList extends Component
     {
         $invoice = Sale::find($invoiceId);
         if ($invoice) {
+            // Si la factura estaba pendiente, reducir la deuda del cliente
+            if ($invoice->status === 'pending' && $invoice->customer) {
+                $new_debt = $invoice->customer->current_debt - $invoice->total_amount;
+                // Asegurar que la deuda no sea negativa
+                $new_debt = max(0, $new_debt);
+                $invoice->customer->update(['current_debt' => $new_debt]);
+            }
+            
             $invoice->update(['status' => 'completed']);
+            
+            // Reducir el stock de los productos vendidos (si no se había hecho antes)
+            foreach ($invoice->saleItems as $item) {
+                $product = $item->product;
+                if ($product) {
+                    $product->decrement('stock', $item->quantity);
+                }
+            }
+            
             session()->flash('message', 'Factura marcada como pagada exitosamente.');
         }
     }
@@ -57,19 +74,25 @@ class InvoiceList extends Component
     {
         $invoice = Sale::find($invoiceId);
         if ($invoice) {
-            // Si la factura ya está completada, devolver los productos al inventario
-            if ($invoice->status === 'completed') {
-                foreach ($invoice->saleItems as $item) {
-                    // Actualizar el stock del producto
-                    $product = $item->product;
-                    if ($product) {
-                        $product->increment('stock', $item->quantity);
-                    }
+            // Devolver los productos al inventario independientemente del estado previo
+            foreach ($invoice->saleItems as $item) {
+                // Actualizar el stock del producto
+                $product = $item->product;
+                if ($product) {
+                    $product->increment('stock', $item->quantity);
                 }
             }
             
+            // Si la factura estaba pendiente, reducir la deuda que se había registrado
+            if ($invoice->status === 'pending' && $invoice->customer) {
+                $new_debt = $invoice->customer->current_debt - $invoice->total_amount;
+                // Asegurar que la deuda no sea negativa
+                $new_debt = max(0, $new_debt);
+                $invoice->customer->update(['current_debt' => $new_debt]);
+            }
+            
             $invoice->update(['status' => 'cancelled']);
-            session()->flash('message', 'Factura cancelada exitosamente. Los productos han sido devueltos al inventario.');
+            session()->flash('message', 'Factura cancelada exitosamente.');
         }
     }
 

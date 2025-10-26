@@ -37,6 +37,7 @@ class Create extends Component
     public $due_date;
     public $sale_date;
     public $notes = '';
+    public $status = 'completed';
 
     protected $rules = [
         'selectedCustomer' => 'required|exists:customers,id',
@@ -53,13 +54,28 @@ class Create extends Component
         $this->due_date = now()->addDays(30)->format('Y-m-d'); // Fecha de vencimiento predeterminada (30 días después)
         $this->currency = 'COP'; // Peso colombiano por defecto
         $this->sale_type = 'CONTADO'; // Tipo de venta por defecto
+        $this->status = 'completed'; // Valor por defecto
+    }
+    
+    public function updatedStatus($value)
+    {
+        if ($value === 'pending') {
+            $this->cashReceived = null; // Establecer a null en lugar de 0 para que se vea vacío
+            $this->change = 0.00;
+        }
     }
     /**
      * Se ejecuta cuando la propiedad `cashReceived` es actualizada.
      */
     public function updatedCashReceived($value)
     {
-        $this->calculateChange($value);
+        // Si el estado es pendiente, no permitir cambiar el valor de efectivo recibido
+        if ($this->status === 'pending') {
+            $this->cashReceived = null;
+            $this->change = 0.00;
+        } else {
+            $this->calculateChange($value);
+        }
     }
 
     /**
@@ -71,6 +87,12 @@ class Create extends Component
             $this->cashReceived = null;
             $this->change = 0.00;
         }
+        
+        // Si el estado es pendiente, forzar efectivo recibido a null
+        if ($this->status === 'pending') {
+            $this->cashReceived = null;
+            $this->change = 0.00;
+        }
     }
 
     /**
@@ -78,6 +100,13 @@ class Create extends Component
      */
     private function calculateChange($received = null)
     {
+        // Si el estado es pendiente, no calcular cambio
+        if ($this->status === 'pending') {
+            $this->change = 0.00;
+            $this->cashReceived = null;
+            return;
+        }
+
         $receivedAmount = (float)($received ?? $this->cashReceived);
 
         if ($this->payment_method !== 'cash' || is_null($receivedAmount)) {
@@ -90,8 +119,12 @@ class Create extends Component
 
         if ($receivedAmount >= $totalWithDiscount) {
             $this->change = $receivedAmount - $totalWithDiscount;
+            // Limpiar cualquier error previo relacionado con el efectivo recibido
+            $this->resetErrorBag('cashReceived');
         } else {
             $this->change = 0.00;
+            // Si el monto recibido no es suficiente, mostrar mensaje de error
+            $this->addError('cashReceived', 'El monto recibido no es suficiente para cubrir el total de la venta.');
         }
     }
 
@@ -103,20 +136,20 @@ class Create extends Component
 
     public function updatedSearchProduct()
     {
-        // Verificar si el texto ingresado es un código de barras o QR (número de cualquier longitud)
-        if (preg_match('/^\d+$/', $this->searchProduct) && strlen($this->searchProduct) >= 8) {
+        // Verificar si el texto ingresado es un código de barras (número de cualquier longitud)
+        if (preg_match('/^\\d+$/', $this->searchProduct) && strlen($this->searchProduct) >= 1) {
             $product = Product::where('barcode', $this->searchProduct)
                 ->where('stock', '>', 0)
                 ->first();
 
             if ($product) {
-                // Producto encontrado por código de barras o QR, se agrega directamente al carrito
+                // Producto encontrado por código de barras, se agrega directamente al carrito
                 $this->selectedProduct = $product->id;
                 $this->addToCart();
                 $this->searchProduct = ''; // Limpiar campo
                 $this->searchResults = collect(); // Limpiar resultados
             } else {
-                // Código de barras o QR no encontrado, mostrar mensaje de error
+                // Código de barras no encontrado, mostrar mensaje de error
                 $this->addError('searchProduct', 'Producto no encontrado con este código');
             }
         } else {
@@ -151,16 +184,13 @@ class Create extends Component
 
         // Calcular subtotal e impuestos
         $subtotal = $totalWithDiscount; // Puede ajustarse según lógica de negocio
-        $tax_amount = collect($this->cart)->sum(function ($item) {
-            return $item['subtotal'] * 0.19; // Suponiendo 19% de IVA
-        });
-        $total_amount = $subtotal + $tax_amount;
+        $total_amount = $totalWithDiscount;
 
         return view('livewire.sales.create', [
             'total' => $total,
             'totalWithDiscount' => $totalWithDiscount,
             'subtotal' => $subtotal,
-            'tax_amount' => $tax_amount,
+            'tax_amount' => 0,
             'discount_amount' => $discount_amount,
             'total_amount' => $total_amount,
         ]);
@@ -184,11 +214,8 @@ class Create extends Component
 
         $productId = $product->id;
 
-        // Calcular montos de línea
+        // Calcular montos de línea basados en el precio de venta del producto
         $line_extension_amount = $product->selling_price * $this->quantity;
-        $tax_percent = 19.00; // Suponiendo 19% de IVA
-        $tax_amount = $line_extension_amount * ($tax_percent / 100);
-        $total_line_amount = $line_extension_amount + $tax_amount;
 
         if (isset($this->cart[$productId])) {
             // If product already in cart, update quantity
@@ -201,11 +228,8 @@ class Create extends Component
 
             $this->cart[$productId]['quantity'] = $newQuantity;
             $this->cart[$productId]['subtotal'] = $this->cart[$productId]['selling_price'] * $newQuantity;
-
-            // Recalcular montos de línea
             $line_extension_amount = $this->cart[$productId]['selling_price'] * $newQuantity;
-            $tax_amount = $line_extension_amount * ($tax_percent / 100);
-            $this->cart[$productId]['total_line_amount'] = $line_extension_amount + $tax_amount;
+            $this->cart[$productId]['total_line_amount'] = $line_extension_amount;
         } else {
             // Add new product to cart
             $this->cart[$productId] = [
@@ -218,9 +242,7 @@ class Create extends Component
                 'quantity' => $this->quantity,
                 'subtotal' => $product->selling_price * $this->quantity,
                 'line_extension_amount' => $line_extension_amount,
-                'tax_percent' => $tax_percent,
-                'tax_amount' => $tax_amount,
-                'total_line_amount' => $total_line_amount,
+                'total_line_amount' => $line_extension_amount,
             ];
         }
 
@@ -278,13 +300,18 @@ class Create extends Component
         $discount_amount = $total * ($this->discount / 100);
         $totalWithDiscount = $total - $discount_amount;
 
-        // Calcular subtotal e impuestos
+        // Validación de pago suficiente para ventas en efectivo
+        if ($this->payment_method === 'cash' && $this->status !== 'pending') {
+            $cashReceived = (float)$this->cashReceived;
+            if ($cashReceived < $totalWithDiscount) {
+                $this->addError('cashReceived', 'El monto recibido no es suficiente para cubrir el total de la venta.');
+                return;
+            }
+        }
+
+        // Calcular subtotal (sin impuestos ya que el precio de venta ya los incluye)
         $subtotal = $totalWithDiscount;
-        $tax_amount = collect($this->cart)->sum(function ($item) {
-            $line_extension_amount = $item['selling_price'] * $item['quantity'];
-            return $line_extension_amount * 0.19; // Suponiendo 19% de IVA
-        });
-        $total_amount = $subtotal + $tax_amount;
+        $total_amount = $totalWithDiscount; // Sin impuestos adicionales ya que el precio de venta ya los incluye
 
         // Crear la venta
         $sale = Sale::create([
@@ -294,7 +321,7 @@ class Create extends Component
             'invoice_number' => $this->invoice_number,
             'cufe' => $this->cufe,
             'subtotal' => $subtotal,
-            'tax_amount' => $tax_amount,
+            'tax_amount' => 0, // Ya están incluidos en el precio de venta
             'discount_amount' => $discount_amount,
             'total_amount' => $total_amount,
             'currency' => $this->currency,
@@ -304,11 +331,11 @@ class Create extends Component
             'sale_date' => $this->sale_date,
             'due_date' => $this->due_date,
             'payment_method' => $this->payment_method,
-            'status' => 'completed',
-            'notes' => '', // Campo opcional para notas de la venta
+            'status' => $this->status,
+            'notes' => $this->notes, // Campo opcional para notas de la venta
         ]);
 
-        // Crear los ítems de la venta y actualizar el stock de productos
+        // Crear los ítems de la venta y actualizar el stock de productos solo si la venta está completada
         foreach ($this->cart as $item) {
             SaleItem::create([
                 'sale_id' => $sale->id,
@@ -320,16 +347,33 @@ class Create extends Component
                 'quantity' => $item['quantity'],
                 'selling_price' => $item['selling_price'],
                 'line_extension_amount' => $item['line_extension_amount'],
-                'tax_percent' => $item['tax_percent'],
-                'tax_amount' => $item['tax_amount'],
+                'tax_percent' => 0, // Tomar del producto si se requiere
+                'tax_amount' => 0, // Tomar del producto si se requiere
                 'total_line_amount' => $item['total_line_amount'],
                 'subtotal' => $item['line_extension_amount'], // Agregar el campo subtotal
             ]);
 
-            // Actualizar el stock del producto
-            $product = Product::find($item['id']);
-            if ($product) {
-                $product->decrement('stock', $item['quantity']);
+            // Actualizar el stock del producto solo si la venta está completada
+            if ($this->status === 'completed') {
+                $product = Product::find($item['id']);
+                if ($product) {
+                    $product->decrement('stock', $item['quantity']);
+                }
+            }
+        }
+
+        // Actualizar la deuda del cliente si la venta está pendiente
+        if ($this->status === 'pending') {
+            $customer = Customer::find($this->selectedCustomer);
+            if ($customer) {
+                // Registrar el total exacto de la venta en la deuda del cliente
+                $new_debt = $customer->current_debt + $total_amount;
+                $customer->update(['current_debt' => $new_debt]);
+                
+                // Registrar en el log para depuración
+                \Log::info("Venta pendiente registrada para cliente {$customer->id}. Nueva deuda: $new_debt. Monto de venta: $total_amount");
+            } else {
+                \Log::error("No se encontró el cliente con ID {$this->selectedCustomer} para registrar la deuda de la venta pendiente");
             }
         }
 
@@ -353,7 +397,10 @@ class Create extends Component
             'sale_date',
             'cashReceived',
             'change',
+            'notes',
+            'status',
         ]);
+        $this->status = 'completed'; // Establecer el valor por defecto al resetear
         $this->customers = Customer::all();
         $this->products = Product::where('stock', '>', 0)->get();
         $this->sale_date = now()->format('Y-m-d');
@@ -384,6 +431,7 @@ class Create extends Component
             'cashReceived',
             'change',
         ]);
+        $this->status = 'completed'; // Establecer el valor por defecto al cancelar
         $this->customers = Customer::all();
         $this->products = Product::where('stock', '>', 0)->get();
         $this->sale_date = now()->format('Y-m-d');

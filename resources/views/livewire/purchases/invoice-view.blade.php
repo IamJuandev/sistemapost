@@ -18,7 +18,7 @@
                     title="Cancelar Factura">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                         <path fill-rule="evenodd"
-                            d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                            d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 011.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
                             clip-rule="evenodd" />
                     </svg>
                 </button>
@@ -33,9 +33,24 @@
         <div class="bg-white dark:bg-slate-800 rounded-xl shadow-md border border-slate-200 dark:border-slate-700">
             <header class="p-6 md:p-8 flex justify-between items-start">
                 <div>
-                    <h2 class="text-2xl font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-widest">Tu
-                        Empresa</h2>
-                    <p class="text-slate-500 dark:text-slate-400">Dirección de tu empresa, Ciudad</p>
+                    @php
+                        $companyInfo = app('App\Models\CompanyInfo')::first();
+                    @endphp
+                    @if($companyInfo)
+                        <h2 class="text-2xl font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-widest">
+                            {{ $companyInfo->trade_name ?? $companyInfo->company_name }}
+                        </h2>
+                        <p class="text-slate-500 dark:text-slate-400">
+                            {{ $companyInfo->address }}, {{ $companyInfo->city }}, {{ $companyInfo->department }}
+                        </p>
+                        <p class="text-slate-500 dark:text-slate-400">
+                            NIT: {{ $companyInfo->nit }}-{{ $companyInfo->dv }}
+                        </p>
+                    @else
+                        <h2 class="text-2xl font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-widest">Tu
+                            Empresa</h2>
+                        <p class="text-slate-500 dark:text-slate-400">Dirección de tu empresa, Ciudad</p>
+                    @endif
                 </div>
                 <div class="text-right">
                     <h1 class="text-3xl font-bold text-slate-800 dark:text-slate-100 uppercase">Factura</h1>

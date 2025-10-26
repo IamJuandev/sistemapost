@@ -19,6 +19,39 @@ class InvoiceView extends Component
     {
         return view('livewire.purchases.invoice-view');
     }
+    
+    /**
+     * Redondea un valor al número más cercano con ceros
+     * Ejemplo: 3960 -> 4000, 4020 -> 4000, 4051 -> 4100
+     */
+    private function roundToNearestZero($value)
+    {
+        if ($value < 100) {
+            return round($value);
+        }
+        
+        // Redondear al número de cien más cercano
+        $hundreds = round($value / 100) * 100;
+        
+        // Si el valor original es muy cercano a un múltiplo de 1000, redondear a eso
+        if ($hundreds % 1000 == 0) {
+            // Si está dentro de un 10% de un múltiplo de 1000, redondear a ese múltiplo
+            $thousands = round($value / 1000) * 1000;
+            if (abs($value - $thousands) < 50) {
+                return $thousands;
+            }
+        }
+        
+        // Otra estrategia más simple: redondear a la decena más cercana para valores pequeños,
+        // y a la centena más cercana para valores más grandes
+        if ($value < 1000) {
+            return round($value / 10) * 10;
+        } elseif ($value < 10000) {
+            return round($value / 100) * 100;
+        } else {
+            return round($value / 1000) * 1000;
+        }
+    }
 
     public function markAsPaid($invoiceId)
     {
@@ -57,17 +90,17 @@ class InvoiceView extends Component
                     $taxRateDecimal = $item->tax_percent / 100;
                     $costWithTax = $costWithoutTax * (1 + $taxRateDecimal);
 
-                    // Actualizar precio de costo
-                    $product->cost_price = $costWithTax;
+                    // Actualizar precio de costo con redondeo
+                    $product->cost_price = $this->roundToNearestZero($costWithTax);
 
                     // Calcular precio de venta solo con margen de ganancia (sin incluir IVA nuevamente)
                     // Asumiendo que el producto ya tiene un margen de ganancia definido
                     if ($product->profit_margin) {
                         $profitDecimal = $product->profit_margin / 100;
-                        $product->selling_price = $costWithTax * (1 + $profitDecimal);
+                        $product->selling_price = $this->roundToNearestZero($costWithTax * (1 + $profitDecimal));
                     } else {
                         // Si no hay margen definido, usar el costo como precio de venta
-                        $product->selling_price = $costWithTax;
+                        $product->selling_price = $this->roundToNearestZero($costWithTax);
                     }
 
                     $product->tax_rate = $item->tax_percent; // Actualizar el porcentaje de impuesto
@@ -98,7 +131,7 @@ class InvoiceView extends Component
 
                         // Calcular precio de venta con margen de ganancia (sin incluir IVA nuevamente)
                         $defaultProfitMargin = 0.20; // 20% de margen por defecto
-                        $sellingPrice = $costWithTax * (1 + $defaultProfitMargin);
+                        $sellingPrice = $this->roundToNearestZero($costWithTax * (1 + $defaultProfitMargin));
 
                         // Encontrar una categoría existente o usar una por defecto
                         $defaultCategory = \App\Models\Category::first(); // Tomar la primera categoría existente
@@ -113,7 +146,7 @@ class InvoiceView extends Component
                         \App\Models\Product::create([
                             'name' => $item->description ?: 'Producto desde compra #' . $invoice->invoice_number,
                             'barcode' => null, // Dejar código de barras en blanco
-                            'cost_price' => $costWithTax,
+                            'cost_price' => $this->roundToNearestZero($costWithTax),
                             'tax_rate' => $item->tax_percent,
                             'profit_margin' => $defaultProfitMargin * 100, // Convertir a porcentaje
                             'selling_price' => $sellingPrice,
@@ -139,14 +172,14 @@ class InvoiceView extends Component
                         $costWithTax = $costWithoutTax * (1 + $taxRateDecimal);
 
                         $existingProduct->stock += $totalQuantity;
-                        $existingProduct->cost_price = $costWithTax;
+                        $existingProduct->cost_price = $this->roundToNearestZero($costWithTax);
 
                         // Calcular precio de venta con margen de ganancia
                         if ($existingProduct->profit_margin) {
                             $profitDecimal = $existingProduct->profit_margin / 100;
-                            $existingProduct->selling_price = $costWithTax * (1 + $profitDecimal);
+                            $existingProduct->selling_price = $this->roundToNearestZero($costWithTax * (1 + $profitDecimal));
                         } else {
-                            $existingProduct->selling_price = $costWithTax;
+                            $existingProduct->selling_price = $this->roundToNearestZero($costWithTax);
                         }
 
                         $existingProduct->tax_rate = $item->tax_percent;

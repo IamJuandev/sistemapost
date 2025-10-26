@@ -318,15 +318,18 @@ class Create extends Component
                 // Sumar impuestos fijos (IBUA e ICUI) al precio unitario
                 $effectiveUnitPriceWithTax += $item['ibua'] + $item['icui'];
                 
+                // Aplicar redondeo al precio de costo y precio de venta
+                $roundedCostPrice = $this->roundToNearestZero($effectiveUnitPriceWithTax);
+                
                 // Actualizar precios del producto
-                $product->cost_price = $effectiveUnitPriceWithTax;
+                $product->cost_price = $roundedCostPrice;
                 
                 // Calcular precio de venta con margen de ganancia
                 if ($product->profit_margin) {
                     $profitDecimal = $product->profit_margin / 100;
-                    $product->selling_price = $effectiveUnitPriceWithTax * (1 + $profitDecimal);
+                    $product->selling_price = $this->roundToNearestZero($roundedCostPrice * (1 + $profitDecimal));
                 } else {
-                    $product->selling_price = $effectiveUnitPriceWithTax;
+                    $product->selling_price = $roundedCostPrice;
                 }
                 
                 $product->quantity_for_unit = $item['quantity_for_unit']; // Actualizar quantity_for_unit si está disponible
@@ -352,5 +355,38 @@ class Create extends Component
         $this->invoice_prefix = '';
         $this->invoice_number = '';
         $this->notes = '';
+    }
+    
+    /**
+     * Redondea un valor al número más cercano con ceros
+     * Ejemplo: 3960 -> 4000, 4020 -> 4000, 4051 -> 4100
+     */
+    private function roundToNearestZero($value)
+    {
+        if ($value < 100) {
+            return round($value);
+        }
+        
+        // Redondear al número de cien más cercano
+        $hundreds = round($value / 100) * 100;
+        
+        // Si el valor original es muy cercano a un múltiplo de 1000, redondear a eso
+        if ($hundreds % 1000 == 0) {
+            // Si está dentro de un 10% de un múltiplo de 1000, redondear a ese múltiplo
+            $thousands = round($value / 1000) * 1000;
+            if (abs($value - $thousands) < 50) {
+                return $thousands;
+            }
+        }
+        
+        // Otra estrategia más simple: redondear a la decena más cercana para valores pequeños,
+        // y a la centena más cercana para valores más grandes
+        if ($value < 1000) {
+            return round($value / 10) * 10;
+        } elseif ($value < 10000) {
+            return round($value / 100) * 100;
+        } else {
+            return round($value / 1000) * 1000;
+        }
     }
 }
